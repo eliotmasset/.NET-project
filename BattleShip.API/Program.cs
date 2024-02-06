@@ -1,13 +1,12 @@
+using BattleShip.API.Service;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -16,29 +15,30 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+BoardService.InitBoards();
 
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/board/player1", () =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
+    char[,] boardPlayer1Char = BoardService.GetBoardPlayer1();
+    return Enumerable.Range(0, boardPlayer1Char.GetLength(0))
+        .Select(i => Enumerable.Range(0, boardPlayer1Char.GetLength(1))
+            .Select(j => boardPlayer1Char[i, j])
+            .ToArray())
         .ToArray();
-    return forecast;
 })
-.WithName("GetWeatherForecast")
+.WithName("GetBoardPlayer1")
+.WithOpenApi();
+
+app.MapGet("/board/player2", () =>
+{
+    char[,] boardPlayer2Char = BoardService.GetBoardPlayer1();
+    return Enumerable.Range(0, boardPlayer2Char.GetLength(0))
+        .Select(i => Enumerable.Range(0, boardPlayer2Char.GetLength(1))
+            .Select(j => boardPlayer2Char[i, j])
+            .ToArray())
+        .ToArray();
+})
+.WithName("GetBoardPlayer2")
 .WithOpenApi();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
