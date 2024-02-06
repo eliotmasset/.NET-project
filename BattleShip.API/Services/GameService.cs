@@ -38,7 +38,7 @@ public class GameService
                 }
             };
         }
-        bool shooted = BoardService.Shoot(game.BoardPlayer2, x, y);
+        bool shooted = BoardService.Shoot(game.BoardPlayer2, x, y, game.BoardPlayer2View);
         bool gameOver = false;
         bool iaWin = false;
         int xIA = 0;
@@ -51,7 +51,7 @@ public class GameService
             xIA = move[0];
             yIA = move[1];
             game.PlayableMoves.Remove(move);
-            BoardService.Shoot(game.BoardPlayer1, xIA, yIA);
+            BoardService.Shoot(game.BoardPlayer1, xIA, yIA, game.BoardPlayer1View);
             gameOver = BoardService.IsGameOver(game.BoardPlayer1);
             iaWin = gameOver;
         };
@@ -72,7 +72,13 @@ public class GameService
                         .Select(j => game.BoardPlayer2.Grid[i, j])
                         .ToArray())
                     .ToArray()
-            } : null
+            } : new BoardDto {
+                Grid = Enumerable.Range(0, game.BoardPlayer2View.Grid.GetLength(0))
+                    .Select(i => Enumerable.Range(0, game.BoardPlayer2View.Grid.GetLength(1))
+                        .Select(j => game.BoardPlayer2View.Grid[i, j])
+                        .ToArray())
+                    .ToArray()
+            }
         };
     }
 }

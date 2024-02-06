@@ -115,7 +115,7 @@ public class BoardService
         }
     }
 
-    public static bool Shoot(Board board, int x, int y) {
+    public static bool Shoot(Board board, int x, int y, Board view) {
         if(x < 0 || x >= Board.size || y < 0 || y >= Board.size) {
             return false;
         }
@@ -123,16 +123,18 @@ public class BoardService
         if(arr.Contains(board.Grid[x, y])) {
             return true;
         }
-        if(board.Grid[x, y] != '\0' && board.Grid[x, y] != 'X') {
+        if(board.Grid[x, y] != '\0' && board.Grid[x, y] != 'O') {
             board.Grid[x, y] = GetLowerCase(board.Grid[x, y]);
+            view.Grid[x, y] = 'X';
             return true;
         }
-        board.Grid[x, y] = 'X';
+        board.Grid[x, y] = 'O';
+        view.Grid[x, y] = 'O';
         return false;
     }
 
     public static bool IsGameOver(Board board) {
-        char[] arr =  ['a', 'b', 'c', 'd', 'e', 'f', 'X', '\0'];
+        char[] arr =  ['a', 'b', 'c', 'd', 'e', 'f', 'O', '\0'];
         for (int i = 0; i < Board.size; i++)
         {
             for (int j = 0; j < Board.size; j++)

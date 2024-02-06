@@ -20,6 +20,9 @@ public class Board
                 Grid[i, j] = '\0';
             }
         }
+    }
+
+    public void PlaceShips() {
         BoardService.PlaceShips(this);
     }
 }
