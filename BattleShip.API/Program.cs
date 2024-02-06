@@ -1,4 +1,6 @@
-using BattleShip.API.Service;
+using BattleShip.API.Entities;
+using BattleShip.API.Services;
+using BattleShip.Models.DTO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,30 +17,33 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-BoardService.InitBoards();
-
-app.MapGet("/board/player1", () =>
+app.MapGet("/game/start", () =>
 {
-    char[,] boardPlayer1Char = BoardService.GetBoardPlayer1();
-    return Enumerable.Range(0, boardPlayer1Char.GetLength(0))
-        .Select(i => Enumerable.Range(0, boardPlayer1Char.GetLength(1))
-            .Select(j => boardPlayer1Char[i, j])
-            .ToArray())
-        .ToArray();
+    Game game = GameService.Start();
+    return new GameDto
+    {
+        PlayerName = game.Player1Name,
+        Identifier = game.Identifier,
+        VisibleBoard = new BoardDto
+        {
+            Grid = Enumerable.Range(0, game.BoardPlayer1.Grid.GetLength(0))
+                    .Select(i => Enumerable.Range(0, game.BoardPlayer1.Grid.GetLength(1))
+                        .Select(j => game.BoardPlayer1.Grid[i, j])
+                        .ToArray())
+                    .ToArray()
+        }
+    };
 })
-.WithName("GetBoardPlayer1")
+.WithName("GameStart")
 .WithOpenApi();
 
-app.MapGet("/board/player2", () =>
+app.MapGet("/game/attack/{identifier}/{x}/{y}", (int identifier, int x, int y) =>
 {
-    char[,] boardPlayer2Char = BoardService.GetBoardPlayer1();
-    return Enumerable.Range(0, boardPlayer2Char.GetLength(0))
-        .Select(i => Enumerable.Range(0, boardPlayer2Char.GetLength(1))
-            .Select(j => boardPlayer2Char[i, j])
-            .ToArray())
-        .ToArray();
+    Game? game = GameService.GetGame(identifier);
+    if(game == null) return Results.NotFound(new { Message = "Game not found" });
+    return Results.Ok(GameService.Play(game, x, y));
 })
-.WithName("GetBoardPlayer2")
+.WithName("GameAttack")
 .WithOpenApi();
 
 app.Run();

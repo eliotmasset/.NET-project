@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace BattleShip.API.Service;
+namespace BattleShip.API.Services;
 
 public class Char2DArrayConverter : JsonConverter<char[,]>
 {
