@@ -4,6 +4,12 @@ using BattleShip.Models.DTO;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        builder => builder.WithOrigins("http://localhost:5182").AllowAnyHeader().AllowAnyMethod());
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
