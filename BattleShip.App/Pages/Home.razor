@@ -8,20 +8,37 @@
 @inject HttpClient Http
 @using BattleShip.Models.DTO
 
-@if (game == null)
-{
-    <p>No Todo Items found.</p>
-}
-else
-{
-    <ul>
-        <li>@game.Identifier</li>
-    </ul>
-}
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BattleShip.App</title>
+    <base href="/" />
+    <link rel="stylesheet" href="css/home.css" />
+</head>
+
+<PageTitle>Home</PageTitle>
+
+<div class="container">
+    <div class="blur-box">
+        <h1> Bataille navale!! </h1>
+        <div class="button-with-image">
+            <img src="image/joueur_solo.png" alt="solo" class="button-image" />
+            <button @onclick="NavigateToIa">Joueur VS IA</button>
+        </div>
+        <div class="button-with-image">
+            <img src="image/joueur_multi.png" alt="multi" class="button-image" />
+            <button @onclick="NavigateToPlayer">Joueur VS Joueur</button>
+        </div>
+    </div>
+</div>
 
 @code {
-    private GameDto? game;
+    private void NavigateToIa() {
+        NavigationManager.NavigateTo("JoueurVsIa");
+    }
 
-    protected override async Task OnInitializedAsync() => 
-        game = await Http.GetFromJsonAsync<GameDto>("http://localhost:5015/game/start");
+
+    private void NavigateToPlayer() {
+        NavigationManager.NavigateTo("JoueurVsJoueur");
+    }
 }

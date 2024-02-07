@@ -1,0 +1,84 @@
+body {
+    margin: 0;
+}
+
+.content {
+    width: 80vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin: auto;
+    column-gap: 40px;
+}
+
+.grid {
+    aspect-ratio: 1 / 1;
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
+    flex: 1;
+}
+
+.grid > div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid rgb(192, 192, 192);
+    background-color: rgb(238, 253, 253);
+}
+
+.grid > div:hover {
+    background-color: rgb(213, 255, 255);
+    cursor: pointer;
+}
+
+.grid > div > .target {
+}
+
+.grid > div  > .ship {
+    border-radius: 10px;
+    width: 100%;
+    height: 100%;
+}
+
+.grid > div  > .ship-A {
+    background-color: rgb(223, 147, 147);
+}
+.grid > div  > .ship-B {
+    background-color: rgb(147, 184, 223);
+}
+.grid > div  > .ship-C {
+    background-color: rgb(167, 223, 147);
+}
+.grid > div  > .ship-D {
+    background-color: rgb(223, 147, 210);
+}
+.grid > div  > .ship-E {
+    background-color: rgb(223, 200, 147);
+}
+.grid > div  > .ship-F {
+    background-color: rgb(147, 223, 212);
+}
+
+.grid > div  > .ship-A:hover {
+    background-color: rgb(225, 131, 131);
+}
+.grid > div  > .ship-B:hover {
+    background-color: rgb(125, 173, 223);
+}
+.grid > div  > .ship-C:hover {
+    background-color: rgb(146, 224, 118);
+}
+.grid > div  > .ship-D:hover {
+    background-color: rgb(223, 123, 206);
+}
+.grid > div  > .ship-E:hover {
+    background-color: rgb(224, 194, 122);
+}
+.grid > div  > .ship-F:hover {
+    background-color: rgb(121, 222, 207);
+}
