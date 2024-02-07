@@ -12,49 +12,96 @@
     <link rel="stylesheet" href="css/grid.css" />
 </head>
 
-@if (game == null)
+@if (boardPlayer1 == null)
 {
     <p>Error 500: Game not create.</p>
 }
 else
 {
     <div class="content">
-        <div class="grid">
-            @for (int x = 0; x < 10; x++)
-            {
-                @for (int y = 0; y < 10; y++)
+        <div class="board">
+            <div class="header">
+                <h1>Player 1</h1>
+            </div>
+            <div class="grid">
+                @for (int x = 0; x < 10; x++)
                 {
-                    @if(game.VisibleBoard.Grid[x][y] == '\0') {
-                        <div class="cell"></div>
-                    }
-                    else if(game.VisibleBoard.Grid[x][y] == 'O') {
+                    @for (int y = 0; y < 10; y++)
+                    {
                         <div class="cell">
-                            <div class="target"></div>
-                        </div>
-                    }
-                    else {
-                        <div class="cell">
-                            <div class="ship ship-@game.VisibleBoard.Grid[x][y]"></div>
+                            @if(boardPlayer1.Grid[x][y] == 'O') {
+                                <div class="target"></div>
+                            }
+                            else if(boardPlayer1.Grid[x][y] != '\0') {
+                                List<char> shipsLowerCase = new List<char> {'a', 'b', 'c', 'd', 'e', 'f'};
+                                <div class="ship ship-@boardPlayer1.Grid[x][y]">
+                                    @if(shipsLowerCase.Contains(boardPlayer1.Grid[x][y])) {
+                                        <div class="cross-outer">
+                                            <div class="cross-inner"></div>
+                                        </div>
+                                    }
+                                </div>
+                            }
                         </div>
                     }
                 }
-            }
+            </div>
         </div>
-        <div class="grid">
-            @for (int x = 0; x < 10; x++)
-            {
-                @for (int y = 0; y < 10; y++)
+        <div class="board">
+            <div class="header p2">
+                <h1>Player 2 (IA)</h1>
+            </div>
+            <div class="grid">
+                @for (int x = 0; x < 10; x++)
                 {
-                    <div class="cell"></div>
+                    @for (int y = 0; y < 10; y++)
+                    {
+                        int x_copy = x;
+                        int y_copy = y;
+                        <div class="cell" onclick="@(() => Attack(@x_copy, @y_copy))">
+                            @if(boardPlayer2 != null) {
+                                @if(boardPlayer2.Grid[x][y] == 'O') {
+                                        <div class="target"></div>
+                                } else if(boardPlayer2.Grid[x][y] != '\0') {
+                                    List<char> shipsLowerCase = new List<char> {'a', 'b', 'c', 'd', 'e', 'f'};
+                                    <div class="ship ship-@boardPlayer2.Grid[x][y]">
+                                        @if(shipsLowerCase.Contains(boardPlayer2.Grid[x][y])) {
+                                            <div class="cross-outer">
+                                                <div class="cross-inner"></div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+                    }
                 }
-            }
+            </div>
         </div>
     </div>
 }
 
 @code {
-    private GameDto? game;
+    private int? Identifier;
+    private BoardDto? boardPlayer1;
+    private BoardDto? boardPlayer2;
 
-    protected override async Task OnInitializedAsync() => 
-        game = await Http.GetFromJsonAsync<GameDto>("http://localhost:5015/game/start");
+    private async Task Attack(int x, int y) {
+        StateGameDTO? stateGame = await HttpClient.GetFromJsonAsync<StateGameDTO>("http://localhost:5015/game/attack/"+Identifier+"/"+x+"/"+y);
+        if(stateGame == null) {
+            return;
+        }
+        boardPlayer1 = stateGame.BoardPlayer1;
+        boardPlayer2 = stateGame.BoardPlayer2;
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync() {
+        GameDto? game = await Http.GetFromJsonAsync<GameDto>("http://localhost:5015/game/start");
+        if(game == null) {
+            return;
+        }
+        Identifier = game.Identifier;
+        boardPlayer1 = game.VisibleBoard;
+    }
 }
