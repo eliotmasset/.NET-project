@@ -1,0 +1,26 @@
+@page "/JoueurVsIa"
+@inject HttpClient HttpClient
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BattleShip.App</title>
+    <base href="/" />
+    <link rel="stylesheet" href="css/ia.css" />
+</head>
+
+<div class="main-grid-container">
+    <div class="main-grid">
+        @for (int i = 0; i < 100; i++)
+        {
+            <div class="grid-item"></div>
+        }
+    </div>
+
+    <div class="small-grid">
+        @for (int i = 0; i < 100; i++)
+        {
+            <div class="small-grid-item"></div>
+        }
+    </div>
+</div>
