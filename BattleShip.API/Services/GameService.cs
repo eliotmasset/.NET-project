@@ -6,10 +6,16 @@ namespace BattleShip.API.Services;
 public class GameService
 {
     private static List<Game> games = [];
+
     public static Game Start() {
-        Game game = new();
+        Game game = new(games);
         games.Add(game);
         return game;
+    }
+
+    public static bool Stop(Game game) {
+        games.Remove(game);
+        return true;
     }
 
     public static Game? GetGame(int identifier) {

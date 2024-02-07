@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(
-        builder => builder.WithOrigins("http://localhost:5182").AllowAnyHeader().AllowAnyMethod());
+        builder => builder.WithOrigins("http://localhost:5182/").AllowAnyHeader().AllowAnyMethod());
 });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -50,6 +50,16 @@ app.MapGet("/game/attack/{identifier}/{x}/{y}", (int identifier, int x, int y) =
     return Results.Ok(GameService.Play(game, x, y));
 })
 .WithName("GameAttack")
+.WithOpenApi();
+
+app.MapPost("/game/stop", (int identifier) =>
+{
+    Game? game = GameService.GetGame(identifier);
+    if(game == null) return Results.NotFound(new { Message = "Game not found" });
+    GameService.Stop(game);
+    return Results.Ok();
+})
+.WithName("GameStop")
 .WithOpenApi();
 
 app.Run();
