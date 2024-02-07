@@ -1,0 +1,49 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+h1 {
+    display: flex;
+    justify-content: center;
+    padding : 10px;
+}
+
+.blur-box {
+    background-color: rgba(126, 117, 117, 0.5);
+    padding: 50px;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.blur-box button {
+    margin: 30px;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    background-image: url('../image/test.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.button-with-image {
+    position: relative;
+    display: inline-block;
+    margin: 10px;
+}
+
+.button-image {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70px;
+    height: auto;
+}
