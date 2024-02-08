@@ -134,7 +134,17 @@ body {
 .grid>div>.ship-X:hover {
     background-color: rgb(138, 138, 138);
 }
+.cell.dragged {
+    position: relative;
+}
 
+.cell.dragged .ship {
+    opacity: 0.5;
+    position: absolute;
+    transform: scale(0.9) translateX(-50%) translateY(-50%);
+    transform-origin: center;
+    z-index: 10;
+}
 
 .cross-outer {
     position: relative;

@@ -52,6 +52,27 @@ app.MapGet("/game/attack/{identifier}/{x}/{y}", (int identifier, int x, int y) =
 .WithName("GameAttack")
 .WithOpenApi();
 
+app.MapPost("/game/setBoard", (int identifier, BoardDto board) =>
+{
+    Game? game = GameService.GetGame(identifier);
+    if(game == null) return Results.NotFound(new { Message = "Game not found" });
+    char[,] boardParse = new char[board.Grid.GetLength(0), board.Grid.GetLength(0)];
+    for (int i = 0; i < board.Grid.GetLength(0); i++)
+    {
+        for (int j = 0; j < board.Grid.GetLength(0); j++)
+        {
+            boardParse[i, j] = board.Grid[i][j];
+        }
+    }
+    game.BoardPlayer1 = new Board
+    {
+        Grid = boardParse
+    };
+    return Results.Ok();
+})
+.WithName("GameSetBoard")
+.WithOpenApi();
+
 app.MapPost("/game/stop", (int identifier) =>
 {
     Game? game = GameService.GetGame(identifier);
