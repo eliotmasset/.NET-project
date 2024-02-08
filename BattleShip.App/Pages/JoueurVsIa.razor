@@ -23,10 +23,16 @@ else
             <div class="header" draggable="false">
                 @if(winner == "Player 1") {
                     <h1>Winner: Player 1</h1>
+                    <button class="btn btn-valid" onclick="@(() => Restart())">Recommencer</button>
                 }
                 else {
                     <h1>Player 1</h1>
+                    <button class="btn btn-valid" onclick="@(() => Restart())">Recommencer</button>
                 }
+                @if(validGrid == false) {
+                    <button class="btn btn-valid" onclick="@(() => ValidGrid())">Valider la grille</button>
+                }
+
             </div>
             <div class="grid" draggable="false" onmousemove="@OnMouseMove" onmouseup="@((MouseEventArgs e) => OnMouseUp(e, false))" onmouseleave="@((MouseEventArgs e) => OnMouseUp(e, true))">
                 @for (int x = 0; x < 10; x++)
@@ -38,6 +44,8 @@ else
                         string className = "cell";
                         @if(draggedShip == boardPlayer1.Grid[x][y]) {
                             className += " dragged";
+                        } else if(waterBoats.Contains(boardPlayer1.Grid[x][y])) {
+                            className += " water";
                         }
                         <div class="@className" draggable="false" onmouseover="@(() => onMouseOver(x_copy, y_copy))">
                             @if(boardPlayer1.Grid[x][y] == 'O') {
@@ -64,7 +72,7 @@ else
                                     }
                                 }
                                 <div class="ship ship-@boardPlayer1.Grid[x][y]" style="@inlineCSS" onmousedown="@((MouseEventArgs e) => ClickOnShip(boardPlayer1.Grid[x_copy][y_copy], x_copy, y_copy, e))">
-                                    @if(shipsLowerCase.Contains(boardPlayer1.Grid[x][y])) {
+                                    @if(shipsLowerCase.Contains(boardPlayer1.Grid[x][y]) && !waterBoats.Contains(boardPlayer1.Grid[x][y])) {
                                         <div class="cross-outer">
                                             <div class="cross-inner"></div>
                                         </div>
@@ -91,12 +99,19 @@ else
                     {
                         int x_copy = x;
                         int y_copy = y;
-                        <div class="cell" onclick="@(() => Attack(@x_copy, @y_copy))">
+                        string className = "cell";
+                        @if((boardPlayer2 != null && boardPlayer2.Grid[x][y] != '\0') || winner != "" || validGrid == false) {
+                            className += " disable";
+                        }
+                        List<char> shipsLowerCase = new List<char> {'a', 'b', 'c', 'd', 'e', 'f'};
+                        @if(boardPlayer2 != null && shipsLowerCase.Contains(boardPlayer2.Grid[x][y])) {
+                            className += " water";
+                        } 
+                        <div class="@className" onclick="@(() => Attack(@x_copy, @y_copy))">
                             @if(boardPlayer2 != null) {
                                 @if(boardPlayer2.Grid[x][y] == 'O') {
                                         <div class="target"></div>
                                 } else if(boardPlayer2.Grid[x][y] != '\0') {
-                                    List<char> shipsLowerCase = new List<char> {'a', 'b', 'c', 'd', 'e', 'f'};
                                     <div class="ship ship-@boardPlayer2.Grid[x][y]">
                                         @if(shipsLowerCase.Contains(boardPlayer2.Grid[x][y])) {
                                             <div class="cross-outer">
@@ -119,6 +134,7 @@ else
     private BoardDto? boardPlayer1;
     private BoardDto? boardPlayer2;
     private string winner = "";
+    private bool validGrid = false;
     private char? draggedShip = null;
     private double mouseX = 0;
     private double mouseY = 0;
@@ -126,6 +142,7 @@ else
     private double mouseYStart = 0;
     private int[] coordHover = [0, 0];
     private int[] coordClickedShip = [0, 0];
+    private char[] waterBoats = {};
     private bool? horizontale;
     private bool? horizontaleStart;
 
@@ -136,11 +153,50 @@ else
         }
         boardPlayer1 = stateGame.BoardPlayer1;
         boardPlayer2 = stateGame.BoardPlayer2;
+        x = 0;
+        y = 0;
+        char[] boats = {'A', 'B', 'C', 'D', 'E', 'F'};
+        List<char> waterBoats = new List<char> {'a', 'b', 'c', 'd', 'e', 'f'};
+        foreach(char[] row in boardPlayer1.Grid) {
+            foreach(char element in row) {
+                @if(boats.Contains(element)) {
+                    switch(element) {
+                        case 'A':
+                            waterBoats.Remove('a');
+                            break;
+                        case 'B':
+                            waterBoats.Remove('b');
+                            break;
+                        case 'C':
+                            waterBoats.Remove('c');
+                            break;
+                        case 'D':
+                            waterBoats.Remove('d');
+                            break;
+                        case 'E':
+                            waterBoats.Remove('e');
+                            break;
+                        case 'F':
+                            waterBoats.Remove('f');
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                y++;
+            }
+            x++;
+            y=0;
+        }
+        this.waterBoats = waterBoats.ToArray();
         winner = stateGame.GameWinner;
         StateHasChanged();
     }
 
     private async Task ClickOnShip(char ship, int x, int y, MouseEventArgs e) {
+        if(validGrid) {
+            return;
+        }
         draggedShip = ship;
         mouseXStart = e.ClientX - e.OffsetX;
         mouseYStart = e.ClientY - e.OffsetY;
@@ -154,7 +210,8 @@ else
                 horizontale = false;
                 horizontaleStart = false;
             }
-        } else if(x-1 >= 1 && boardPlayer1 != null) {
+        }
+        @if(x-1 >= 1 && boardPlayer1 != null) {
             @if(boardPlayer1.Grid[x-1][y] == ship) {
                 horizontale = false;
                 horizontaleStart = false;
@@ -164,6 +221,9 @@ else
     }
 
     private async Task OnMouseUp(MouseEventArgs e, bool leave) {
+        if(validGrid) {
+            return;
+        }
         mouseX = e.ClientX - mouseXStart;
         mouseY = e.ClientY - mouseYStart;
         if(leave) {
@@ -176,6 +236,7 @@ else
         int y = 0;
         int diffX = coordHover[0] - coordClickedShip[0];
         int diffY = coordHover[1] - coordClickedShip[1];
+        bool canBePlaced = true;
         List<int[]> draggedShips = new();
         foreach(char[] row in boardPlayer1.Grid) {
             foreach(char element in row) {
@@ -185,11 +246,20 @@ else
                         int diffYFromClicked = y - coordClickedShip[1];
                         @if(horizontale == true) {
                             draggedShips.Add([x + diffX - diffXFromClicked, y + diffY - diffXFromClicked]);
+                            @if(x+diffX-diffXFromClicked < 0 || x+diffX-diffXFromClicked > 9 || y+diffY-diffXFromClicked < 0 || y+diffY-diffXFromClicked > 9) {
+                                canBePlaced = false;
+                            }
                         } else {
                             draggedShips.Add([x + diffX - diffYFromClicked, y + diffY - diffYFromClicked]);
+                            @if(x+diffX-diffYFromClicked < 0 || x+diffX-diffYFromClicked > 9 || y+diffY-diffYFromClicked < 0 || y+diffY-diffYFromClicked > 9) {
+                                canBePlaced = false;
+                            }
                         }
                     } else {
                         draggedShips.Add([x + diffX, y + diffY]);
+                        @if(x+diffX < 0 || x+diffX > 9 || y+diffY < 0 || y+diffY > 9) {
+                            canBePlaced = false;
+                        }
                     }
                 }
                 y++;
@@ -199,7 +269,6 @@ else
         }
         x = 0;
         y = 0;
-        bool canBePlaced = true;
         foreach(char[] row in boardPlayer1.Grid) {
             foreach(char element in row) {
                 if(draggedShips.Any(elem => elem[0] == x && elem[1] == y) &&  element != '\0' && element != draggedShip) {
@@ -235,6 +304,9 @@ else
     }
 
     private async Task OnMouseMove(MouseEventArgs e) {
+        if(validGrid) {
+            return;
+        }
         if(draggedShip == null) {
             return;
         }
@@ -244,14 +316,29 @@ else
     }
 
     private async Task onMouseOver(int x, int y) {
+        if(validGrid) {
+            return;
+        }
         coordHover = [x, y];
         StateHasChanged();
     }
 
     private async Task OnKeyDown(KeyboardEventArgs e) {
+        if(validGrid) {
+            return;
+        }
         if(e.Key == "Control" && draggedShip != null) {
             horizontale = !horizontale;
         }
+    }
+
+    private async Task ValidGrid() {
+        if(boardPlayer1 == null) {
+            return;
+        }
+        await Http.PostAsJsonAsync<BoardDto>("http://localhost:5015/game/setBoard?identifier="+Identifier, boardPlayer1);
+        validGrid = true;
+        StateHasChanged();
     }
 
     protected override async Task OnInitializedAsync() {
@@ -261,5 +348,26 @@ else
         }
         Identifier = game.Identifier;
         boardPlayer1 = game.VisibleBoard;
+    }
+
+    private async Task Restart() {
+        GameDto? game = await Http.GetFromJsonAsync<GameDto>("http://localhost:5015/game/start");
+        if(game == null) {
+            return;
+        }
+        Identifier = game.Identifier;
+        boardPlayer1 = game.VisibleBoard;
+        boardPlayer2 = null;
+        winner = "";
+        validGrid = false;
+        draggedShip = null;
+        mouseX = 0;
+        mouseY = 0;
+        mouseXStart = 0;
+        mouseYStart = 0;
+        coordHover = [0, 0];
+        coordClickedShip = [0, 0];
+        horizontale = true;
+        horizontaleStart = true;
     }
 }

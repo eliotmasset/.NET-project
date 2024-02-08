@@ -2,6 +2,10 @@ body {
     margin: 0;
 }
 
+* {
+    font-family: sans-serif;
+}
+
 .content {
     width: 80vw;
     height: 100vh;
@@ -24,6 +28,7 @@ body {
     height: 100px;
     background-color: rgb(208, 237, 231);
     padding: auto;
+    max-width: calc(100vh - 200px);
 }
 
 .header h1 {
@@ -43,7 +48,7 @@ body {
     grid-column-gap: 0px;
     grid-row-gap: 0px;
     width: 100%;
-    height: calc(100% - 200px);
+    max-width: calc(100vh - 200px);
 }
 
 .grid>div {
@@ -59,7 +64,10 @@ body {
     cursor: pointer;
 }
 
-.grid>div>.target {}
+.disable {
+    pointer-events: none;
+    cursor: auto;
+}
 
 .grid>div>.ship {
     border-radius: 10px;
@@ -146,6 +154,15 @@ body {
     z-index: 10;
 }
 
+.cell.water .ship > * {
+    display: none;
+}
+
+.cell.water .ship {
+    opacity: 0.5;
+    transform: scale(0.9);
+}
+
 .cross-outer {
     position: relative;
     margin: auto;
@@ -190,4 +207,31 @@ body {
     background-color: rgb(104, 137, 92);
     border-radius: 50%;
     margin: auto;
+}
+
+.btn-valid {
+    position: absolute;
+    right: 20px;
+    bottom: 50%;
+    padding: 10px 20px;
+    transform: translateY(50%);
+    border-radius: 2px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    border: 2px solid #3498db;
+    color: #3498db;
+    background-color: #fff;
+    border-radius: 10px;
+}
+
+.btn-valid:hover {
+    background-color: #3498db;
+    color: #fff;
+}
+
+.header {
+    position: relative;
 }
