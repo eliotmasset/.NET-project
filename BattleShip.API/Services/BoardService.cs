@@ -124,8 +124,20 @@ public class BoardService
             return true;
         }
         if(board.Grid[x, y] != '\0' && board.Grid[x, y] != 'O') {
+            char c = board.Grid[x, y];
             board.Grid[x, y] = GetLowerCase(board.Grid[x, y]);
-            view.Grid[x, y] = 'X';
+            List<char> boardList = new(board.Grid.Cast<char>());
+            if(boardList.Contains(c)) {
+                view.Grid[x, y] = 'X';
+            } else {
+                for(int xCopy = 0; xCopy < Board.size; xCopy++) {
+                    for(int yCopy = 0; yCopy < Board.size; yCopy++) {
+                        if(board.Grid[xCopy, yCopy] == GetLowerCase(c)) {
+                            view.Grid[xCopy, yCopy] = GetLowerCase(c);
+                        }
+                    }
+                }
+            }
             return true;
         }
         board.Grid[x, y] = 'O';
