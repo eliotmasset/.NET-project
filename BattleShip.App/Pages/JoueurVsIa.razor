@@ -23,10 +23,19 @@ else
             <div class="header" draggable="false">
                 @if(winner == "Player 1") {
                     <h1>Winner: Player 1</h1>
+                    <button class="btn btn-valid" onclick="@(() => Restart())">Recommencer</button>
+                }
+                else if(winner != "") {
+                    <h1>Player 1</h1>
+                    <button class="btn btn-valid" onclick="@(() => Restart())">Recommencer</button>
                 }
                 else {
                     <h1>Player 1</h1>
                 }
+                @if(validGrid == false) {
+                    <button class="btn btn-valid" onclick="@(() => ValidGrid())">Valider la grille</button>
+                }
+
             </div>
             <div class="grid" draggable="false" onmousemove="@OnMouseMove" onmouseup="@((MouseEventArgs e) => OnMouseUp(e, false))" onmouseleave="@((MouseEventArgs e) => OnMouseUp(e, true))">
                 @for (int x = 0; x < 10; x++)
@@ -91,7 +100,11 @@ else
                     {
                         int x_copy = x;
                         int y_copy = y;
-                        <div class="cell" onclick="@(() => Attack(@x_copy, @y_copy))">
+                        string className = "cell";
+                        @if((boardPlayer2 != null && boardPlayer2.Grid[x][y] != '\0') || winner != "" || validGrid == false) {
+                            className += " disable";
+                        }
+                        <div class="@className" onclick="@(() => Attack(@x_copy, @y_copy))">
                             @if(boardPlayer2 != null) {
                                 @if(boardPlayer2.Grid[x][y] == 'O') {
                                         <div class="target"></div>
@@ -119,6 +132,7 @@ else
     private BoardDto? boardPlayer1;
     private BoardDto? boardPlayer2;
     private string winner = "";
+    private bool validGrid = false;
     private char? draggedShip = null;
     private double mouseX = 0;
     private double mouseY = 0;
@@ -141,6 +155,9 @@ else
     }
 
     private async Task ClickOnShip(char ship, int x, int y, MouseEventArgs e) {
+        if(validGrid) {
+            return;
+        }
         draggedShip = ship;
         mouseXStart = e.ClientX - e.OffsetX;
         mouseYStart = e.ClientY - e.OffsetY;
@@ -165,6 +182,9 @@ else
     }
 
     private async Task OnMouseUp(MouseEventArgs e, bool leave) {
+        if(validGrid) {
+            return;
+        }
         mouseX = e.ClientX - mouseXStart;
         mouseY = e.ClientY - mouseYStart;
         if(leave) {
@@ -245,6 +265,9 @@ else
     }
 
     private async Task OnMouseMove(MouseEventArgs e) {
+        if(validGrid) {
+            return;
+        }
         if(draggedShip == null) {
             return;
         }
@@ -254,14 +277,29 @@ else
     }
 
     private async Task onMouseOver(int x, int y) {
+        if(validGrid) {
+            return;
+        }
         coordHover = [x, y];
         StateHasChanged();
     }
 
     private async Task OnKeyDown(KeyboardEventArgs e) {
+        if(validGrid) {
+            return;
+        }
         if(e.Key == "Control" && draggedShip != null) {
             horizontale = !horizontale;
         }
+    }
+
+    private async Task ValidGrid() {
+        if(boardPlayer1 == null) {
+            return;
+        }
+        await Http.PostAsJsonAsync<BoardDto>("http://localhost:5015/game/setBoard?identifier="+Identifier, boardPlayer1);
+        validGrid = true;
+        StateHasChanged();
     }
 
     protected override async Task OnInitializedAsync() {
@@ -271,5 +309,26 @@ else
         }
         Identifier = game.Identifier;
         boardPlayer1 = game.VisibleBoard;
+    }
+
+    private async Task Restart() {
+        GameDto? game = await Http.GetFromJsonAsync<GameDto>("http://localhost:5015/game/start");
+        if(game == null) {
+            return;
+        }
+        Identifier = game.Identifier;
+        boardPlayer1 = game.VisibleBoard;
+        boardPlayer2 = null;
+        winner = "";
+        validGrid = false;
+        draggedShip = null;
+        mouseX = 0;
+        mouseY = 0;
+        mouseXStart = 0;
+        mouseYStart = 0;
+        coordHover = [0, 0];
+        coordClickedShip = [0, 0];
+        horizontale = true;
+        horizontaleStart = true;
     }
 }
