@@ -154,7 +154,8 @@ else
                 horizontale = false;
                 horizontaleStart = false;
             }
-        } else if(x-1 >= 1 && boardPlayer1 != null) {
+        }
+        @if(x-1 >= 1 && boardPlayer1 != null) {
             @if(boardPlayer1.Grid[x-1][y] == ship) {
                 horizontale = false;
                 horizontaleStart = false;
@@ -176,6 +177,7 @@ else
         int y = 0;
         int diffX = coordHover[0] - coordClickedShip[0];
         int diffY = coordHover[1] - coordClickedShip[1];
+        bool canBePlaced = true;
         List<int[]> draggedShips = new();
         foreach(char[] row in boardPlayer1.Grid) {
             foreach(char element in row) {
@@ -185,11 +187,20 @@ else
                         int diffYFromClicked = y - coordClickedShip[1];
                         @if(horizontale == true) {
                             draggedShips.Add([x + diffX - diffXFromClicked, y + diffY - diffXFromClicked]);
+                            @if(x+diffX-diffXFromClicked < 0 || x+diffX-diffXFromClicked > 9 || y+diffY-diffXFromClicked < 0 || y+diffY-diffXFromClicked > 9) {
+                                canBePlaced = false;
+                            }
                         } else {
                             draggedShips.Add([x + diffX - diffYFromClicked, y + diffY - diffYFromClicked]);
+                            @if(x+diffX-diffYFromClicked < 0 || x+diffX-diffYFromClicked > 9 || y+diffY-diffYFromClicked < 0 || y+diffY-diffYFromClicked > 9) {
+                                canBePlaced = false;
+                            }
                         }
                     } else {
                         draggedShips.Add([x + diffX, y + diffY]);
+                        @if(x+diffX < 0 || x+diffX > 9 || y+diffY < 0 || y+diffY > 9) {
+                            canBePlaced = false;
+                        }
                     }
                 }
                 y++;
@@ -199,7 +210,6 @@ else
         }
         x = 0;
         y = 0;
-        bool canBePlaced = true;
         foreach(char[] row in boardPlayer1.Grid) {
             foreach(char element in row) {
                 if(draggedShips.Any(elem => elem[0] == x && elem[1] == y) &&  element != '\0' && element != draggedShip) {
