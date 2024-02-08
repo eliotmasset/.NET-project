@@ -44,6 +44,8 @@ else
                         string className = "cell";
                         @if(draggedShip == boardPlayer1.Grid[x][y]) {
                             className += " dragged";
+                        } else if(waterBoats.Contains(boardPlayer1.Grid[x][y])) {
+                            className += " water";
                         }
                         <div class="@className" draggable="false" onmouseover="@(() => onMouseOver(x_copy, y_copy))">
                             @if(boardPlayer1.Grid[x][y] == 'O') {
@@ -70,7 +72,7 @@ else
                                     }
                                 }
                                 <div class="ship ship-@boardPlayer1.Grid[x][y]" style="@inlineCSS" onmousedown="@((MouseEventArgs e) => ClickOnShip(boardPlayer1.Grid[x_copy][y_copy], x_copy, y_copy, e))">
-                                    @if(shipsLowerCase.Contains(boardPlayer1.Grid[x][y])) {
+                                    @if(shipsLowerCase.Contains(boardPlayer1.Grid[x][y]) && !waterBoats.Contains(boardPlayer1.Grid[x][y])) {
                                         <div class="cross-outer">
                                             <div class="cross-inner"></div>
                                         </div>
@@ -101,12 +103,15 @@ else
                         @if((boardPlayer2 != null && boardPlayer2.Grid[x][y] != '\0') || winner != "" || validGrid == false) {
                             className += " disable";
                         }
+                        List<char> shipsLowerCase = new List<char> {'a', 'b', 'c', 'd', 'e', 'f'};
+                        @if(boardPlayer2 != null && shipsLowerCase.Contains(boardPlayer2.Grid[x][y])) {
+                            className += " water";
+                        } 
                         <div class="@className" onclick="@(() => Attack(@x_copy, @y_copy))">
                             @if(boardPlayer2 != null) {
                                 @if(boardPlayer2.Grid[x][y] == 'O') {
                                         <div class="target"></div>
                                 } else if(boardPlayer2.Grid[x][y] != '\0') {
-                                    List<char> shipsLowerCase = new List<char> {'a', 'b', 'c', 'd', 'e', 'f'};
                                     <div class="ship ship-@boardPlayer2.Grid[x][y]">
                                         @if(shipsLowerCase.Contains(boardPlayer2.Grid[x][y])) {
                                             <div class="cross-outer">
@@ -137,6 +142,7 @@ else
     private double mouseYStart = 0;
     private int[] coordHover = [0, 0];
     private int[] coordClickedShip = [0, 0];
+    private char[] waterBoats = {};
     private bool? horizontale;
     private bool? horizontaleStart;
 
@@ -147,6 +153,42 @@ else
         }
         boardPlayer1 = stateGame.BoardPlayer1;
         boardPlayer2 = stateGame.BoardPlayer2;
+        x = 0;
+        y = 0;
+        char[] boats = {'A', 'B', 'C', 'D', 'E', 'F'};
+        List<char> waterBoats = new List<char> {'a', 'b', 'c', 'd', 'e', 'f'};
+        foreach(char[] row in boardPlayer1.Grid) {
+            foreach(char element in row) {
+                @if(boats.Contains(element)) {
+                    switch(element) {
+                        case 'A':
+                            waterBoats.Remove('a');
+                            break;
+                        case 'B':
+                            waterBoats.Remove('b');
+                            break;
+                        case 'C':
+                            waterBoats.Remove('c');
+                            break;
+                        case 'D':
+                            waterBoats.Remove('d');
+                            break;
+                        case 'E':
+                            waterBoats.Remove('e');
+                            break;
+                        case 'F':
+                            waterBoats.Remove('f');
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                y++;
+            }
+            x++;
+            y=0;
+        }
+        this.waterBoats = waterBoats.ToArray();
         winner = stateGame.GameWinner;
         StateHasChanged();
     }
