@@ -1,6 +1,8 @@
 using BattleShip.API.Entities;
 using BattleShip.API.Services;
 using BattleShip.Models.DTO;
+using FluentValidation;
+using FluentValidation.Results;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,6 +56,11 @@ app.MapGet("/game/attack/{identifier}/{x}/{y}", (int identifier, int x, int y) =
 
 app.MapPost("/game/setBoard", (int identifier, BoardDto board) =>
 {
+    ValidationResult validationResult = new BoardValidator().Validate(board);
+    if (!validationResult.IsValid)
+    {
+        return Results.BadRequest(validationResult.Errors);
+    }
     Game? game = GameService.GetGame(identifier);
     if(game == null) return Results.NotFound(new { Message = "Game not found" });
     char[,] boardParse = new char[board.Grid.GetLength(0), board.Grid.GetLength(0)];
@@ -75,6 +82,13 @@ app.MapPost("/game/setBoard", (int identifier, BoardDto board) =>
 
 app.MapPost("/game/stop", (int identifier) =>
 {
+    var gameDto = new GameDto();
+    ValidationResult validationResult = new GameValidator().Validate(gameDto);
+    if (!validationResult.IsValid)
+    {
+        return Results.BadRequest(validationResult.Errors);
+    }
+
     Game? game = GameService.GetGame(identifier);
     if(game == null) return Results.NotFound(new { Message = "Game not found" });
     GameService.Stop(game);
