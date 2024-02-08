@@ -28,6 +28,7 @@ body {
     height: 100px;
     background-color: rgb(208, 237, 231);
     padding: auto;
+    max-width: calc(100vh - 200px);
 }
 
 .header h1 {
@@ -47,7 +48,7 @@ body {
     grid-column-gap: 0px;
     grid-row-gap: 0px;
     width: 100%;
-    height: calc(100% - 200px);
+    max-width: calc(100vh - 200px);
 }
 
 .grid>div {

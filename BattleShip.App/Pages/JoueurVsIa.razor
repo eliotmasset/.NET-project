@@ -25,12 +25,9 @@ else
                     <h1>Winner: Player 1</h1>
                     <button class="btn btn-valid" onclick="@(() => Restart())">Recommencer</button>
                 }
-                else if(winner != "") {
-                    <h1>Player 1</h1>
-                    <button class="btn btn-valid" onclick="@(() => Restart())">Recommencer</button>
-                }
                 else {
                     <h1>Player 1</h1>
+                    <button class="btn btn-valid" onclick="@(() => Restart())">Recommencer</button>
                 }
                 @if(validGrid == false) {
                     <button class="btn btn-valid" onclick="@(() => ValidGrid())">Valider la grille</button>
