@@ -1,44 +1,399 @@
 ﻿@page "/"
-@using Microsoft.AspNetCore.Components.Web
-@using System
-@using System.Net.Http
-@using System.Net.Http.Json
-@inject NavigationManager NavigationManager
 @inject HttpClient HttpClient
 @inject HttpClient Http
+@using System.Net.Http.Json
+@using System.Net.Http
 @using BattleShip.Models.DTO
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BattleShip.App</title>
-    <base href="/" />
-    <link rel="stylesheet" href="css/home.css" />
+    <link rel="stylesheet" href="css/grid.css" />
 </head>
 
-<PageTitle>Home</PageTitle>
+@if (boardPlayer1 == null)
+{
+    <p>Error 500: Game not create.</p>
+}
+else
+{
+    @if(showModal) {
+        @if(winner == "Player 1") {
+            <div class="modal" onclick="@(() => ClickOnModal())">
+                <div class="modal-content">
+                    <img src="image/pirate.gif" alt="Pirate" />
+                    <h1>Vous avez gagné !</h1>
+                </div>
+            </div>
+        } else if (winner == "Player 2") {
+            <div class="modal" onclick="@(() => ClickOnModal())">
+                <div class="modal-content">
+                    <img src="image/pirate_flag.gif" alt="Pirate Flag" />
+                    <h1>Vous avez perdu !</h1>
+                </div>
+            </div>
+        }
+    }
+    <div class="content" draggable="false" tabindex="0" onkeydown="@((KeyboardEventArgs e) => OnKeyDown(e))">
+        <div class="board" draggable="false">
+            <div class="header" draggable="false">
+                @if(winner == "Player 1") {
+                    <h1>Winner: Player 1</h1>
+                    <button class="btn btn-valid" onclick="@(() => Restart())">Recommencer</button>
+                }
+                else {
+                    <h1>Player 1</h1>
+                    <button class="btn btn-valid" onclick="@(() => Restart())">Recommencer</button>
+                }
+                @if(validGrid == false) {
+                    <button class="btn btn-valid" onclick="@(() => ValidGrid())">Valider la grille</button>
+                }
 
-<div class="container">
-    <div class="blur-box">
-        <h1> Bataille navale!! </h1>
-        <div class="button-with-image">
-            <img src="image/joueur_solo.png" alt="solo" class="button-image" />
-            <button @onclick="NavigateToIa">Joueur VS IA</button>
+            </div>
+            <div class="grid" draggable="false" onmousemove="@OnMouseMove" onmouseup="@((MouseEventArgs e) => OnMouseUp(e, false))" onmouseleave="@((MouseEventArgs e) => OnMouseUp(e, true))">
+                @for (int x = 0; x < 10; x++)
+                {
+                    @for (int y = 0; y < 10; y++)
+                    {
+                        int x_copy = x;
+                        int y_copy = y;
+                        string className = "cell";
+                        @if(draggedShip == boardPlayer1.Grid[x][y]) {
+                            className += " dragged";
+                        } else if(waterBoats.Contains(boardPlayer1.Grid[x][y])) {
+                            className += " water";
+                        }
+                        <div class="@className" draggable="false" onmouseover="@(() => onMouseOver(x_copy, y_copy))">
+                            @if(boardPlayer1.Grid[x][y] == 'O') {
+                                <div class="target"></div>
+                            }
+                            else if(boardPlayer1.Grid[x][y] != '\0') {
+                                List<char> shipsLowerCase = new List<char> {'a', 'b', 'c', 'd', 'e', 'f'};
+                                string inlineCSS = "";
+                                @if(draggedShip == boardPlayer1.Grid[x][y]) {
+                                    inlineCSS = "left: " + mouseX + "px; top: " + mouseY + "px; pointer-events: none;"; 
+                                    @if(horizontaleStart != horizontale && (x != coordClickedShip[0] || y != coordClickedShip[1])) {
+                                        int diffX = x - coordClickedShip[0];
+                                        int diffY = y - coordClickedShip[1];
+                                        int percentTranslateX = -50;
+                                        int percentTranslateY = -50;
+                                        @if(horizontale == true) {
+                                            percentTranslateX = percentTranslateX - (113 * diffX);
+                                            percentTranslateY = percentTranslateY - (113 * diffX);
+                                        } else {
+                                            percentTranslateX = percentTranslateX - (113 * diffY);
+                                            percentTranslateY = percentTranslateY - (113 * diffY);
+                                        }
+                                        inlineCSS += "transform-origin: center; transform: scale(0.9) translateX("+percentTranslateX+"%) translateY("+percentTranslateY+"%);"; 
+                                    }
+                                }
+                                <div class="ship ship-@boardPlayer1.Grid[x][y]" style="@inlineCSS" onmousedown="@((MouseEventArgs e) => ClickOnShip(boardPlayer1.Grid[x_copy][y_copy], x_copy, y_copy, e))">
+                                    @if(shipsLowerCase.Contains(boardPlayer1.Grid[x][y]) && !waterBoats.Contains(boardPlayer1.Grid[x][y])) {
+                                        <div class="cross-outer">
+                                            <div class="cross-inner"></div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            </div>
         </div>
-        <div class="button-with-image">
-            <img src="image/joueur_multi.png" alt="multi" class="button-image" />
-            <button @onclick="NavigateToPlayer">Joueur VS Joueur</button>
+        <div class="board">
+            <div class="header p2">
+                @if(winner == "Player 2") {
+                    <h1>Winner: Player 2 (IA)</h1>
+                } else {
+                    <h1>Player 2 (IA)</h1>
+                }
+            </div>
+            <div class="grid">
+                @for (int x = 0; x < 10; x++)
+                {
+                    @for (int y = 0; y < 10; y++)
+                    {
+                        int x_copy = x;
+                        int y_copy = y;
+                        string className = "cell";
+                        @if((boardPlayer2 != null && boardPlayer2.Grid[x][y] != '\0') || winner != "" || validGrid == false) {
+                            className += " disable";
+                        }
+                        List<char> shipsLowerCase = new List<char> {'a', 'b', 'c', 'd', 'e', 'f'};
+                        @if(boardPlayer2 != null && shipsLowerCase.Contains(boardPlayer2.Grid[x][y])) {
+                            className += " water";
+                        } 
+                        <div class="@className" onclick="@(() => Attack(@x_copy, @y_copy))">
+                            @if(boardPlayer2 != null) {
+                                @if(boardPlayer2.Grid[x][y] == 'O') {
+                                        <div class="target"></div>
+                                } else if(boardPlayer2.Grid[x][y] != '\0') {
+                                    <div class="ship ship-@boardPlayer2.Grid[x][y]">
+                                        @if(shipsLowerCase.Contains(boardPlayer2.Grid[x][y])) {
+                                            <div class="cross-outer">
+                                                <div class="cross-inner"></div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+                    }
+                }
+            </div>
         </div>
     </div>
-</div>
+}
 
 @code {
-    private void NavigateToIa() {
-        NavigationManager.NavigateTo("JoueurVsIa");
+    private int? Identifier;
+    private BoardDto? boardPlayer1;
+    private BoardDto? boardPlayer2;
+    private string winner = "";
+    private bool validGrid = false;
+    private char? draggedShip = null;
+    private double mouseX = 0;
+    private double mouseY = 0;
+    private double mouseXStart = 0;
+    private double mouseYStart = 0;
+    private int[] coordHover = [0, 0];
+    private int[] coordClickedShip = [0, 0];
+    private char[] waterBoats = {};
+    private bool? horizontale;
+    private bool? horizontaleStart;
+    private bool showModal = false;
+
+    private async Task Attack(int x, int y) {
+        StateGameDTO? stateGame = await HttpClient.GetFromJsonAsync<StateGameDTO>("http://localhost:5015/game/attack/"+Identifier+"/"+x+"/"+y);
+        if(stateGame == null) {
+            return;
+        }
+        boardPlayer1 = stateGame.BoardPlayer1;
+        boardPlayer2 = stateGame.BoardPlayer2;
+        x = 0;
+        y = 0;
+        char[] boats = {'A', 'B', 'C', 'D', 'E', 'F'};
+        List<char> waterBoats = new List<char> {'a', 'b', 'c', 'd', 'e', 'f'};
+        foreach(char[] row in boardPlayer1.Grid) {
+            foreach(char element in row) {
+                @if(boats.Contains(element)) {
+                    switch(element) {
+                        case 'A':
+                            waterBoats.Remove('a');
+                            break;
+                        case 'B':
+                            waterBoats.Remove('b');
+                            break;
+                        case 'C':
+                            waterBoats.Remove('c');
+                            break;
+                        case 'D':
+                            waterBoats.Remove('d');
+                            break;
+                        case 'E':
+                            waterBoats.Remove('e');
+                            break;
+                        case 'F':
+                            waterBoats.Remove('f');
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                y++;
+            }
+            x++;
+            y=0;
+        }
+        this.waterBoats = waterBoats.ToArray();
+        winner = stateGame.GameWinner;
+        if(winner != "") {
+            showModal = true;
+        }
+        StateHasChanged();
     }
 
+    private async Task ClickOnShip(char ship, int x, int y, MouseEventArgs e) {
+        if(validGrid) {
+            return;
+        }
+        draggedShip = ship;
+        mouseXStart = e.ClientX - e.OffsetX;
+        mouseYStart = e.ClientY - e.OffsetY;
+        mouseX = e.OffsetX;
+        mouseY = e.OffsetY;
+        coordClickedShip = [x, y];
+        horizontale = true;
+        horizontaleStart = true;
+        @if(x+1 <= 9 && boardPlayer1 != null) {
+            @if(boardPlayer1.Grid[x+1][y] == ship) {
+                horizontale = false;
+                horizontaleStart = false;
+            }
+        }
+        @if(x-1 >= 1 && boardPlayer1 != null) {
+            @if(boardPlayer1.Grid[x-1][y] == ship) {
+                horizontale = false;
+                horizontaleStart = false;
+            }
+        }
+        StateHasChanged();
+    }
 
-    private void NavigateToPlayer() {
-        NavigationManager.NavigateTo("JoueurVsJoueur");
+    private async Task OnMouseUp(MouseEventArgs e, bool leave) {
+        if(validGrid) {
+            return;
+        }
+        mouseX = e.ClientX - mouseXStart;
+        mouseY = e.ClientY - mouseYStart;
+        if(leave) {
+            return;
+        }
+        if(boardPlayer1 == null) {
+            return;
+        }
+        int x = 0;
+        int y = 0;
+        int diffX = coordHover[0] - coordClickedShip[0];
+        int diffY = coordHover[1] - coordClickedShip[1];
+        bool canBePlaced = true;
+        List<int[]> draggedShips = new();
+        foreach(char[] row in boardPlayer1.Grid) {
+            foreach(char element in row) {
+                if(element == draggedShip) {
+                    @if(horizontale != horizontaleStart) {
+                        int diffXFromClicked = x - coordClickedShip[0];
+                        int diffYFromClicked = y - coordClickedShip[1];
+                        @if(horizontale == true) {
+                            draggedShips.Add([x + diffX - diffXFromClicked, y + diffY - diffXFromClicked]);
+                            @if(x+diffX-diffXFromClicked < 0 || x+diffX-diffXFromClicked > 9 || y+diffY-diffXFromClicked < 0 || y+diffY-diffXFromClicked > 9) {
+                                canBePlaced = false;
+                            }
+                        } else {
+                            draggedShips.Add([x + diffX - diffYFromClicked, y + diffY - diffYFromClicked]);
+                            @if(x+diffX-diffYFromClicked < 0 || x+diffX-diffYFromClicked > 9 || y+diffY-diffYFromClicked < 0 || y+diffY-diffYFromClicked > 9) {
+                                canBePlaced = false;
+                            }
+                        }
+                    } else {
+                        draggedShips.Add([x + diffX, y + diffY]);
+                        @if(x+diffX < 0 || x+diffX > 9 || y+diffY < 0 || y+diffY > 9) {
+                            canBePlaced = false;
+                        }
+                    }
+                }
+                y++;
+            }
+            x++;
+            y=0;
+        }
+        x = 0;
+        y = 0;
+        foreach(char[] row in boardPlayer1.Grid) {
+            foreach(char element in row) {
+                if(draggedShips.Any(elem => elem[0] == x && elem[1] == y) &&  element != '\0' && element != draggedShip) {
+                    canBePlaced = false;
+                }
+                y++;
+            }
+            x++;
+            y=0;
+        }
+
+        if(canBePlaced) {
+            x = 0;
+            y = 0;
+            foreach(char[] row in boardPlayer1.Grid) {
+                foreach(char element in row) {
+                    if(element == draggedShip) {
+                        boardPlayer1.Grid[x][y] = '\0';
+                    }
+                    if(draggedShips.Any(elem => elem[0] == x && elem[1] == y) && draggedShip != null) {
+                        boardPlayer1.Grid[x][y] = (char) draggedShip;
+                    }
+                    y++;
+                }
+                x++;
+                y=0;
+            }
+            draggedShip = null;
+            StateHasChanged();
+        } else {
+            draggedShip = null;
+        }
+    }
+
+    private async Task OnMouseMove(MouseEventArgs e) {
+        if(validGrid) {
+            return;
+        }
+        if(draggedShip == null) {
+            return;
+        }
+        mouseX = e.ClientX - mouseXStart;
+        mouseY = e.ClientY - mouseYStart;
+        StateHasChanged();
+    }
+
+    private async Task onMouseOver(int x, int y) {
+        if(validGrid) {
+            return;
+        }
+        coordHover = [x, y];
+        StateHasChanged();
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e) {
+        if(validGrid) {
+            return;
+        }
+        if(e.Key == "Control" && draggedShip != null) {
+            horizontale = !horizontale;
+        }
+    }
+
+    private async Task ValidGrid() {
+        if(boardPlayer1 == null) {
+            return;
+        }
+        await Http.PostAsJsonAsync<BoardDto>("http://localhost:5015/game/setBoard?identifier="+Identifier, boardPlayer1);
+        validGrid = true;
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync() {
+        GameDto? game = await Http.GetFromJsonAsync<GameDto>("http://localhost:5015/game/start");
+        if(game == null) {
+            return;
+        }
+        Identifier = game.Identifier;
+        boardPlayer1 = game.VisibleBoard;
+    }
+
+    private async Task Restart() {
+        GameDto? game = await Http.GetFromJsonAsync<GameDto>("http://localhost:5015/game/start");
+        if(game == null) {
+            return;
+        }
+        Identifier = game.Identifier;
+        boardPlayer1 = game.VisibleBoard;
+        boardPlayer2 = null;
+        winner = "";
+        validGrid = false;
+        draggedShip = null;
+        mouseX = 0;
+        mouseY = 0;
+        mouseXStart = 0;
+        mouseYStart = 0;
+        coordHover = [0, 0];
+        coordClickedShip = [0, 0];
+        horizontale = true;
+        horizontaleStart = true;
+    }
+
+    private async Task ClickOnModal() {
+        showModal = false;
+        StateHasChanged();
     }
 }
