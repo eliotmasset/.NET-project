@@ -53,10 +53,9 @@ public class GameService
             gameOver = BoardService.IsGameOver(game.BoardPlayer2);
         }
         if(!gameOver) {
-            int[] move = game.PlayableMoves[Random.Shared.Next(0, game.PlayableMoves.Count)];
+            int[] move = getBestMoveIA(game.BoardPlayer1View);
             xIA = move[0];
             yIA = move[1];
-            game.PlayableMoves.Remove(move);
             BoardService.Shoot(game.BoardPlayer1, xIA, yIA, game.BoardPlayer1View);
             gameOver = BoardService.IsGameOver(game.BoardPlayer1);
             iaWin = gameOver;
@@ -86,5 +85,53 @@ public class GameService
                     .ToArray()
             }
         };
+    }
+
+    public static int[] getBestMoveIA(Board view) {
+        int[] move = new int[2];
+        int x = 0;
+        int y = 0;
+        bool found = false;
+        List<int[]> possibleMoves = [];
+        for (int i = 0; i < Board.size; i++)
+        {
+            for (int j = 0; j < Board.size; j++)
+            {
+                if(view.Grid[i, j] == 'X') {
+                    if(i > 0 && view.Grid[i - 1, j] == '\0') {
+                        x = i - 1;
+                        y = j;
+                        found = true;
+                        break;
+                    } else if(i < Board.size - 1 && view.Grid[i + 1, j] == '\0') {
+                        x = i + 1;
+                        y = j;
+                        found = true;
+                        break;
+                    } else if(j > 0 && view.Grid[i, j - 1] == '\0') {
+                        x = i;
+                        y = j - 1;
+                        found = true;
+                        break;
+                    } else if(j < Board.size - 1 && view.Grid[i, j + 1] == '\0') {
+                        x = i;
+                        y = j + 1;
+                        found = true;
+                        break;
+                    }
+                }
+                if(view.Grid[i, j] == '\0') {
+                    possibleMoves.Add([i, j]);
+                }
+            }
+            if(found) break;
+        }
+        move[0] = x;
+        move[1] = y;
+        if(!found) {
+            int[] randomMove = possibleMoves[Random.Shared.Next(0, possibleMoves.Count)];
+            move = randomMove;
+        }
+        return move;
     }
 }

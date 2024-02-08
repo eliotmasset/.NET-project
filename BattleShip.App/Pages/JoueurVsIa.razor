@@ -18,6 +18,23 @@
 }
 else
 {
+    @if(showModal) {
+        @if(winner == "Player 1") {
+            <div class="modal" onclick="@(() => ClickOnModal())">
+                <div class="modal-content">
+                    <img src="image/pirate.gif" alt="Pirate" />
+                    <h1>Vous avez gagné !</h1>
+                </div>
+            </div>
+        } else if (winner == "Player 2") {
+            <div class="modal" onclick="@(() => ClickOnModal())">
+                <div class="modal-content">
+                    <img src="image/pirate_flag.gif" alt="Pirate Flag" />
+                    <h1>Vous avez perdu !</h1>
+                </div>
+            </div>
+        }
+    }
     <div class="content" draggable="false" tabindex="0" onkeydown="@((KeyboardEventArgs e) => OnKeyDown(e))">
         <div class="board" draggable="false">
             <div class="header" draggable="false">
@@ -145,6 +162,7 @@ else
     private char[] waterBoats = {};
     private bool? horizontale;
     private bool? horizontaleStart;
+    private bool showModal = false;
 
     private async Task Attack(int x, int y) {
         StateGameDTO? stateGame = await HttpClient.GetFromJsonAsync<StateGameDTO>("http://localhost:5015/game/attack/"+Identifier+"/"+x+"/"+y);
@@ -190,6 +208,9 @@ else
         }
         this.waterBoats = waterBoats.ToArray();
         winner = stateGame.GameWinner;
+        if(winner != "") {
+            showModal = true;
+        }
         StateHasChanged();
     }
 
@@ -369,5 +390,10 @@ else
         coordClickedShip = [0, 0];
         horizontale = true;
         horizontaleStart = true;
+    }
+
+    private async Task ClickOnModal() {
+        showModal = false;
+        StateHasChanged();
     }
 }
