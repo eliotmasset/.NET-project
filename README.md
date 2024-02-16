@@ -13,3 +13,4 @@
  - affichage des navires touchés
  - affichage des navires coulés
  - affichage des navires manqués
+ - Gestion des utilisateurs (Inscription, login, logout avec Auth0)
