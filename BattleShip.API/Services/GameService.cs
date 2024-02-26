@@ -53,7 +53,7 @@ public class GameService
             gameOver = BoardService.IsGameOver(game.BoardPlayer2);
         }
         if(!gameOver) {
-            int[] move = getBestMoveIA(game.BoardPlayer1View);
+            int[] move = getBestMoveIA(game.BoardPlayer1View, game.dificulty);
             xIA = move[0];
             yIA = move[1];
             BoardService.Shoot(game.BoardPlayer1, xIA, yIA, game.BoardPlayer1View);
@@ -87,44 +87,57 @@ public class GameService
         };
     }
 
-    public static int[] getBestMoveIA(Board view) {
+    public static int[] getBestMoveIA(Board view, int difficulty) {
         int[] move = new int[2];
         int x = 0;
         int y = 0;
         bool found = false;
         List<int[]> possibleMoves = [];
-        for (int i = 0; i < Board.size; i++)
-        {
-            for (int j = 0; j < Board.size; j++)
+        if(difficulty == Game.HARD || (difficulty == Game.MEDIUM && Random.Shared.Next(0, 2) == 0)) {
+            for (int i = 0; i < view.size; i++)
             {
-                if(view.Grid[i, j] == 'X') {
-                    if(i > 0 && view.Grid[i - 1, j] == '\0') {
-                        x = i - 1;
-                        y = j;
-                        found = true;
-                        break;
-                    } else if(i < Board.size - 1 && view.Grid[i + 1, j] == '\0') {
-                        x = i + 1;
-                        y = j;
-                        found = true;
-                        break;
-                    } else if(j > 0 && view.Grid[i, j - 1] == '\0') {
-                        x = i;
-                        y = j - 1;
-                        found = true;
-                        break;
-                    } else if(j < Board.size - 1 && view.Grid[i, j + 1] == '\0') {
-                        x = i;
-                        y = j + 1;
-                        found = true;
-                        break;
+                for (int j = 0; j < view.size; j++)
+                {
+                    if(view.Grid[i, j] == 'X') {
+                        if(i > 0 && view.Grid[i - 1, j] == '\0') {
+                            x = i - 1;
+                            y = j;
+                            found = true;
+                            break;
+                        } else if(i < view.size - 1 && view.Grid[i + 1, j] == '\0') {
+                            x = i + 1;
+                            y = j;
+                            found = true;
+                            break;
+                        } else if(j > 0 && view.Grid[i, j - 1] == '\0') {
+                            x = i;
+                            y = j - 1;
+                            found = true;
+                            break;
+                        } else if(j < view.size - 1 && view.Grid[i, j + 1] == '\0') {
+                            x = i;
+                            y = j + 1;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if(view.Grid[i, j] == '\0') {
+                        possibleMoves.Add([i, j]);
                     }
                 }
-                if(view.Grid[i, j] == '\0') {
-                    possibleMoves.Add([i, j]);
-                }
+                if(found) break;
             }
-            if(found) break;
+        } else {
+          for (int i = 0; i < view.size; i++)
+          {
+              for (int j = 0; j < view.size; j++)
+              {
+                  if(view.Grid[i, j] == '\0') {
+                      possibleMoves.Add([i, j]);
+                  }
+              }
+          }
+                  
         }
         move[0] = x;
         move[1] = y;

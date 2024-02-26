@@ -11,7 +11,7 @@ public class BoardService
     {
         if (orientation == HORIZONTAL)
         {
-            if (y + shipSize > Board.size)
+            if (y + shipSize > board.size)
             {
                 return false;
             }
@@ -25,7 +25,7 @@ public class BoardService
         }
         else
         {
-            if (x + shipSize > Board.size)
+            if (x + shipSize > board.size)
             {
                 return false;
             }
@@ -42,13 +42,13 @@ public class BoardService
 
     public static void PlaceShip(Board board, int shipSize, char identifier)
     {
-        int x = Random.Shared.Next(0, Board.size);
-        int y = Random.Shared.Next(0, Board.size);
+        int x = Random.Shared.Next(0, board.size);
+        int y = Random.Shared.Next(0, board.size);
         int orientation = Random.Shared.Next(0, 2);
         while (!CanPlaceShip(board, x, y, orientation, shipSize))
         {
-            x = Random.Shared.Next(0, Board.size);
-            y = Random.Shared.Next(0, Board.size);
+            x = Random.Shared.Next(0, board.size);
+            y = Random.Shared.Next(0, board.size);
             orientation = Random.Shared.Next(0, 2);
         }
         if (orientation == HORIZONTAL)
@@ -116,7 +116,7 @@ public class BoardService
     }
 
     public static bool Shoot(Board board, int x, int y, Board view) {
-        if(x < 0 || x >= Board.size || y < 0 || y >= Board.size) {
+        if(x < 0 || x >= board.size || y < 0 || y >= board.size) {
             return false;
         }
         char[] arr =  ['a', 'b', 'c', 'd', 'e', 'f'];
@@ -130,8 +130,8 @@ public class BoardService
             if(boardList.Contains(c)) {
                 view.Grid[x, y] = 'X';
             } else {
-                for(int xCopy = 0; xCopy < Board.size; xCopy++) {
-                    for(int yCopy = 0; yCopy < Board.size; yCopy++) {
+                for(int xCopy = 0; xCopy < board.size; xCopy++) {
+                    for(int yCopy = 0; yCopy < board.size; yCopy++) {
                         if(board.Grid[xCopy, yCopy] == GetLowerCase(c)) {
                             view.Grid[xCopy, yCopy] = GetLowerCase(c);
                         }
@@ -147,9 +147,9 @@ public class BoardService
 
     public static bool IsGameOver(Board board) {
         char[] arr =  ['a', 'b', 'c', 'd', 'e', 'f', 'O', '\0'];
-        for (int i = 0; i < Board.size; i++)
+        for (int i = 0; i < board.size; i++)
         {
-            for (int j = 0; j < Board.size; j++)
+            for (int j = 0; j < board.size; j++)
             {
                 if(!arr.Contains(board.Grid[i, j])) {
                     return false;

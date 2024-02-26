@@ -1,3 +1,8 @@
+
+:root {
+  --grid-size: 10;
+}
+
 body {
     margin: 0;
 }
@@ -13,6 +18,7 @@ body {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
     margin: auto;
     column-gap: 40px;
 }
@@ -20,7 +26,7 @@ body {
 .board {
     display: flex;
     flex-direction: column;
-    flex: 1;
+    flex-basis: 48%;
 }
 
 .header {
@@ -275,3 +281,92 @@ body {
     text-align: center;
     font-size: 60px;
 }
+
+.params {
+  flex-basis: 100%;
+  display: block;
+  padding: 20px 10px;
+  border-radius: 10px;
+  box-shadow: 2px 2px 4px grey;
+  background-color: rgb(250,250,250);
+}
+
+.params select {
+  appearance: none;
+  outline: 10px red;
+  border: 0;
+  box-shadow: none;
+  /* Personalize */
+  flex: 1;
+  padding: 0 7px;
+  color: rgb(50, 50, 50);
+  background-color: rgb(230,230,230);
+  background-image: none;
+  cursor: pointer;
+}
+
+.params input {
+  appearance: none;
+  outline: 10px red;
+  border: 0;
+  box-shadow: none;
+  padding: 18px;
+  color: rgb(50, 50, 50);
+  background-color: rgb(230,230,230);
+  border-radius: 3px;
+}
+
+.params button {
+  appearance: none;
+  outline: 10px red;
+  border: 0;
+  box-shadow: 2px 2px 3px grey;
+  padding: 15px;
+  color: rgb(50, 50, 50);
+  background-color: rgb(230,230,230);
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 16px;
+  transition: all .1s linear;
+}
+
+.params button:active {
+  transform: translateX(2px) translateY(2px);
+  box-shadow: 0px 0px 3px grey;
+}
+
+.params button:hover {
+  background-color: rgb(235, 235, 235);
+}
+
+/* Remove IE arrow */
+.params select::-ms-expand {
+  display: none;
+}
+/* Custom Select wrapper */
+.params .select {
+  position: relative;
+  display: inline-flex;
+  width: 20em;
+  height: 3em;
+  border-radius: .25em;
+  overflow: hidden;
+}
+/* Arrow */
+.params .select::after {
+  content: '\25BC';
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 1em;
+  background-color: #34495e;
+  transition: .25s all ease;
+  pointer-events: none;
+}
+/* Transition */
+.params .select:hover::after {
+  color: #f39c12;
+}
+
+

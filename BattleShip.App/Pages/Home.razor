@@ -51,10 +51,10 @@ else
                 }
 
             </div>
-            <div class="grid" draggable="false" onmousemove="@OnMouseMove" onmouseup="@((MouseEventArgs e) => OnMouseUp(e, false))" onmouseleave="@((MouseEventArgs e) => OnMouseUp(e, true))">
-                @for (int x = 0; x < 10; x++)
+            <div class="grid" style="@gridStyle()" draggable="false" onmousemove="@OnMouseMove" onmouseup="@((MouseEventArgs e) => OnMouseUp(e, false))" onmouseleave="@((MouseEventArgs e) => OnMouseUp(e, true))">
+                @for (int x = 0; x < size; x++)
                 {
-                    @for (int y = 0; y < 10; y++)
+                    @for (int y = 0; y < size; y++)
                     {
                         int x_copy = x;
                         int y_copy = y;
@@ -109,10 +109,10 @@ else
                     <h1>Player 2 (IA)</h1>
                 }
             </div>
-            <div class="grid">
-                @for (int x = 0; x < 10; x++)
+            <div class="grid" style="@gridStyle()">
+                @for (int x = 0; x < size; x++)
                 {
-                    @for (int y = 0; y < 10; y++)
+                    @for (int y = 0; y < size; y++)
                     {
                         int x_copy = x;
                         int y_copy = y;
@@ -143,6 +143,21 @@ else
                 }
             </div>
         </div>
+        @if(!validGrid) {
+            <div class="params">
+                <label for="dificulty">Dificulté :</label>
+                <div class="select">
+                    <select id="dificulty" name="dificulty" @bind="@selectedDificulty">
+                        <option value="1">Facile</option>
+                        <option value="2">Moyen</option>
+                        <option value="3">Difficile</option>
+                    </select>
+                </div>
+                <label for="size">Taille de la grille :</label>
+                <input type="number" step="1" min="6" max="20" @bind="selectedSize" />
+                <button onclick="@(() => ValidParams())">Valider les paramètres</button>
+            </div>
+        }
     </div>
 }
 
@@ -150,6 +165,10 @@ else
     private int? Identifier;
     private BoardDto? boardPlayer1;
     private BoardDto? boardPlayer2;
+    private int size = 10;
+    private int selectedSize = 10;
+    private int dificulty = 1;
+    private int selectedDificulty = 1;
     private string winner = "";
     private bool validGrid = false;
     private char? draggedShip = null;
@@ -214,6 +233,24 @@ else
         StateHasChanged();
     }
 
+    public async Task ValidParams() {
+        var resp = await Http.PostAsJsonAsync<BoardDto>("http://localhost:5015/game/setBoardSize?size="+selectedSize+"&identifier="+Identifier, boardPlayer1);
+        if(resp.IsSuccessStatusCode) {
+            BoardDto? board = await HttpClient.GetFromJsonAsync<BoardDto>("http://localhost:5015/game/getBoard/"+Identifier);
+            if(board != null) {
+                boardPlayer1 = board;
+                size = board.Grid.Length;
+                resp = await Http.PostAsJsonAsync<int>("http://localhost:5015/game/setDificulty?dificulty="+selectedDificulty+"&identifier="+Identifier, selectedDificulty);
+                StateHasChanged();
+            }
+        }
+        Console.WriteLine(resp.IsSuccessStatusCode);
+    }
+
+    public string gridStyle() {
+        return "grid-template-columns: repeat("+size+", 1fr); grid-template-rows: repeat("+size+", 1fr);";
+    }
+
     private async Task ClickOnShip(char ship, int x, int y, MouseEventArgs e) {
         if(validGrid) {
             return;
@@ -226,7 +263,7 @@ else
         coordClickedShip = [x, y];
         horizontale = true;
         horizontaleStart = true;
-        @if(x+1 <= 9 && boardPlayer1 != null) {
+        @if(x+1 < size && boardPlayer1 != null) {
             @if(boardPlayer1.Grid[x+1][y] == ship) {
                 horizontale = false;
                 horizontaleStart = false;
@@ -267,18 +304,18 @@ else
                         int diffYFromClicked = y - coordClickedShip[1];
                         @if(horizontale == true) {
                             draggedShips.Add([x + diffX - diffXFromClicked, y + diffY - diffXFromClicked]);
-                            @if(x+diffX-diffXFromClicked < 0 || x+diffX-diffXFromClicked > 9 || y+diffY-diffXFromClicked < 0 || y+diffY-diffXFromClicked > 9) {
+                            @if(x+diffX-diffXFromClicked < 0 || x+diffX-diffXFromClicked >= size || y+diffY-diffXFromClicked < 0 || y+diffY-diffXFromClicked >= size) {
                                 canBePlaced = false;
                             }
                         } else {
                             draggedShips.Add([x + diffX - diffYFromClicked, y + diffY - diffYFromClicked]);
-                            @if(x+diffX-diffYFromClicked < 0 || x+diffX-diffYFromClicked > 9 || y+diffY-diffYFromClicked < 0 || y+diffY-diffYFromClicked > 9) {
+                            @if(x+diffX-diffYFromClicked < 0 || x+diffX-diffYFromClicked >= size || y+diffY-diffYFromClicked < 0 || y+diffY-diffYFromClicked >= size) {
                                 canBePlaced = false;
                             }
                         }
                     } else {
                         draggedShips.Add([x + diffX, y + diffY]);
-                        @if(x+diffX < 0 || x+diffX > 9 || y+diffY < 0 || y+diffY > 9) {
+                        @if(x+diffX < 0 || x+diffX >= size || y+diffY < 0 || y+diffY >= size) {
                             canBePlaced = false;
                         }
                     }
@@ -369,6 +406,10 @@ else
         }
         Identifier = game.Identifier;
         boardPlayer1 = game.VisibleBoard;
+        size = game.VisibleBoard.Grid.Length;
+        selectedSize = 10;
+        dificulty = 1;
+        selectedDificulty = 1;
     }
 
     private async Task Restart() {
@@ -378,6 +419,10 @@ else
         }
         Identifier = game.Identifier;
         boardPlayer1 = game.VisibleBoard;
+        size = game.VisibleBoard.Grid.Length;
+        selectedSize = 10;
+        dificulty = 1;
+        selectedDificulty = 1;
         boardPlayer2 = null;
         winner = "";
         validGrid = false;

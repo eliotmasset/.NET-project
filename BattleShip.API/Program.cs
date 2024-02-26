@@ -45,6 +45,21 @@ app.MapGet("/game/start", () =>
 .WithName("GameStart")
 .WithOpenApi();
 
+app.MapGet("/game/getBoard/{identifier}", (int identifier) => {
+    Game? game = GameService.GetGame(identifier);
+    if(game == null) return Results.NotFound(new { Message = "Game not found" });
+    return Results.Ok(new BoardDto
+        {
+            Grid = Enumerable.Range(0, game.BoardPlayer1.Grid.GetLength(0))
+                    .Select(i => Enumerable.Range(0, game.BoardPlayer1.Grid.GetLength(1))
+                        .Select(j => game.BoardPlayer1.Grid[i, j])
+                        .ToArray())
+                    .ToArray()
+    });
+})
+.WithName("GetBoard")
+.WithOpenApi();
+
 app.MapGet("/game/attack/{identifier}/{x}/{y}", (int identifier, int x, int y) =>
 {
     Game? game = GameService.GetGame(identifier);
@@ -78,6 +93,32 @@ app.MapPost("/game/setBoard", (int identifier, BoardDto board) =>
     return Results.Ok();
 })
 .WithName("GameSetBoard")
+.WithOpenApi();
+
+app.MapPost("/game/setBoardSize", (int identifier, int size) =>
+{
+  if(size <= 5) {
+    return Results.BadRequest("Size should be greater than 5");
+  }
+  Game? game = GameService.GetGame(identifier);
+  if(game == null) return Results.NotFound(new { Message = "Game not found" });
+  game.setBoardsSize(size);
+  return Results.Ok();
+})
+.WithName("GameSetBoardSize")
+.WithOpenApi();
+
+app.MapPost("/game/setDificulty", (int identifier, int dificulty) =>
+{
+  if(dificulty < Game.EASY || dificulty > Game.HARD) {
+    return Results.BadRequest("Dificulty should be between 1 and 3");
+  }
+  Game? game = GameService.GetGame(identifier);
+  if(game == null) return Results.NotFound(new { Message = "Game not found" });
+  game.dificulty = dificulty;
+  return Results.Ok();
+})
+.WithName("GameSetDificulty")
 .WithOpenApi();
 
 app.MapPost("/game/stop", (int identifier) =>

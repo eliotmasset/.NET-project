@@ -7,11 +7,12 @@ public class Board
     public readonly int HORIZONTAL = 0;
     public readonly int VERTICAL = 1;
 
-    public static readonly int size = 10;
+    public int size = 10;
     public char[,] Grid { get; set; }
 
-    public Board()
+    public Board(int _size = 10)
     {
+        size = _size;
         Grid = new char[size, size];
         for (int i = 0; i < size; i++)
         {
