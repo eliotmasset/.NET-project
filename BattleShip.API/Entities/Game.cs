@@ -11,6 +11,8 @@ public class Game
     public string Player1Name { get; set; }
     public string Player2Name { get; set; }
     public int difficulty { get; set; }
+    public List<int[]> movesIA = new();
+    public List<int[]> movesPlayer = new();
 
     public const int EASY = 1;
     public const int MEDIUM = 2;

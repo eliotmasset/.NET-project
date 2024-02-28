@@ -45,6 +45,7 @@ public class GameService
             };
         }
         bool shooted = BoardService.Shoot(game.BoardPlayer2, x, y, game.BoardPlayer2View);
+        game.movesPlayer.Add([x, y]);
         bool gameOver = false;
         bool iaWin = false;
         int xIA = 0;
@@ -57,6 +58,7 @@ public class GameService
             xIA = move[0];
             yIA = move[1];
             BoardService.Shoot(game.BoardPlayer1, xIA, yIA, game.BoardPlayer1View);
+            game.movesIA.Add([xIA, yIA]);
             gameOver = BoardService.IsGameOver(game.BoardPlayer1);
             iaWin = gameOver;
         };
@@ -137,7 +139,6 @@ public class GameService
                   }
               }
           }
-                  
         }
         move[0] = x;
         move[1] = y;
@@ -146,5 +147,70 @@ public class GameService
             move = randomMove;
         }
         return move;
+    }
+
+    public static bool CancelMove(Game game) {
+      if(game.movesPlayer.Count == 0) return false;
+      int xIA = game.movesPlayer[game.movesPlayer.Count - 1][0];
+      int yIA = game.movesPlayer[game.movesPlayer.Count - 1][1];
+      int xPlayer = game.movesIA[game.movesIA.Count - 1][0];
+      int yPlayer = game.movesIA[game.movesIA.Count - 1][1];
+      switch(game.BoardPlayer1.Grid[xPlayer, yPlayer]) {
+        case 'O':
+          game.BoardPlayer1.Grid[xPlayer, yPlayer] = '\0';
+          break;
+        case 'a':
+          game.BoardPlayer1.Grid[xPlayer, yPlayer] = 'A';
+          break;
+        case 'b':
+          game.BoardPlayer1.Grid[xPlayer, yPlayer] = 'B';
+          break;
+        case 'c':
+          game.BoardPlayer1.Grid[xPlayer, yPlayer] = 'C';
+          break;
+        case 'd':
+          game.BoardPlayer1.Grid[xPlayer, yPlayer] = 'D';
+          break;
+        case 'e':
+          game.BoardPlayer1.Grid[xPlayer, yPlayer] = 'E';
+          break;
+        case 'f':
+          game.BoardPlayer1.Grid[xPlayer, yPlayer] = 'F';
+          break;
+        default:
+          game.BoardPlayer1.Grid[xPlayer, yPlayer] = '\0';
+          break;
+      }
+      switch(game.BoardPlayer2.Grid[xIA, yIA]) {
+        case 'O':
+          game.BoardPlayer2.Grid[xIA, yIA] = '\0';
+          break;
+        case 'a':
+          game.BoardPlayer2.Grid[xIA, yIA] = 'A';
+          break;
+        case 'b':
+          game.BoardPlayer2.Grid[xIA, yIA] = 'B';
+          break;
+        case 'c':
+          game.BoardPlayer2.Grid[xIA, yIA] = 'C';
+          break;
+        case 'd':
+          game.BoardPlayer2.Grid[xIA, yIA] = 'D';
+          break;
+        case 'e':
+          game.BoardPlayer2.Grid[xIA, yIA] = 'E';
+          break;
+        case 'f':
+          game.BoardPlayer2.Grid[xIA, yIA] = 'F';
+          break;
+        default:
+          game.BoardPlayer2.Grid[xIA, yIA] = '\0';
+          break;
+      }
+      game.BoardPlayer1View.Grid[xPlayer, yPlayer] = '\0';
+      game.BoardPlayer2View.Grid[xIA, yIA] = '\0';
+      game.movesPlayer.RemoveAt(game.movesPlayer.Count - 1);
+      game.movesIA.RemoveAt(game.movesIA.Count - 1);
+      return true;
     }
 }

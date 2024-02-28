@@ -238,6 +238,11 @@ body {
     color: #fff;
 }
 
+.btn-valid-restart {
+  left: 20px;
+  right: auto;
+}
+
 .header {
     position: relative;
 }

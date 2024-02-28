@@ -60,6 +60,21 @@ app.MapGet("/game/board/{identifier}", (int identifier) => {
 .WithName("GetBoard")
 .WithOpenApi();
 
+app.MapGet("/game/boardView/{identifier}", (int identifier) => {
+    Game? game = GameService.GetGame(identifier);
+    if(game == null) return Results.NotFound(new { Message = "Game not found" });
+    return Results.Ok(new BoardDto
+        {
+            Grid = Enumerable.Range(0, game.BoardPlayer2View.Grid.GetLength(0))
+                    .Select(i => Enumerable.Range(0, game.BoardPlayer2View.Grid.GetLength(1))
+                        .Select(j => game.BoardPlayer2View.Grid[i, j])
+                        .ToArray())
+                    .ToArray()
+    });
+})
+.WithName("GetBoardView")
+.WithOpenApi();
+
 app.MapGet("/game/attack/{identifier}/{x}/{y}", (int identifier, int x, int y) =>
 {
     Game? game = GameService.GetGame(identifier);
@@ -119,6 +134,16 @@ app.MapPost("/game/difficulty", (int identifier, int difficulty) =>
   return Results.Ok();
 })
 .WithName("GameSetDifficulty")
+.WithOpenApi();
+
+app.MapPost("/game/cancel", (int identifier) =>
+{
+    Game? game = GameService.GetGame(identifier);
+    if(game == null) return Results.NotFound(new { Message = "Game not found" });
+    GameService.CancelMove(game);
+    return Results.Ok();
+})
+.WithName("GameCancel")
 .WithOpenApi();
 
 app.MapPost("/game/stop", (int identifier) =>
