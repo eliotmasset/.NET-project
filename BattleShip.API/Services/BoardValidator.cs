@@ -9,9 +9,8 @@ public class BoardValidator : AbstractValidator<BoardDto>
     {
         RuleFor(x => x.Grid)
             .NotNull().WithMessage("La grille ne peut pas être nulle")
-            .Must(grid => grid != null && grid.Length > 0).WithMessage("La grille ne peut pas être vide")
             .Must(grid => grid is char[][]).WithMessage("La grille doit être de type char[][]")
-            .Must(grid => grid.Length == 10 && grid.All(row => row.Length == 10)).WithMessage("La grille doit être de taille 10x10");      
+            .Must(grid => grid.Length >= 6 && grid.Length <= 20 && grid.All(row => row.Length == grid.Length)).WithMessage("La grille doit être de taille supérieur à 5 ou inférieur à 21 et être carré");      
     }
 
     private bool BeValidGrid(char[][] grid) 

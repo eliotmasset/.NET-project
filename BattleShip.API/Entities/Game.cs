@@ -10,7 +10,7 @@ public class Game
     public int Identifier { get; set; }
     public string Player1Name { get; set; }
     public string Player2Name { get; set; }
-    public int dificulty { get; set; }
+    public int difficulty { get; set; }
 
     public const int EASY = 1;
     public const int MEDIUM = 2;
@@ -29,7 +29,7 @@ public class Game
         } while(games.Any(g => g.Identifier == Identifier));
         Player1Name = "Player 1";
         Player2Name = "Player 2";
-        dificulty = EASY;
+        difficulty = EASY;
     }
 
     public void setBoardsSize(int boardSize)

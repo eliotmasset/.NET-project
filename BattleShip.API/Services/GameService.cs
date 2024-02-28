@@ -53,7 +53,7 @@ public class GameService
             gameOver = BoardService.IsGameOver(game.BoardPlayer2);
         }
         if(!gameOver) {
-            int[] move = getBestMoveIA(game.BoardPlayer1View, game.dificulty);
+            int[] move = getBestMoveIA(game.BoardPlayer1View, game.difficulty);
             xIA = move[0];
             yIA = move[1];
             BoardService.Shoot(game.BoardPlayer1, xIA, yIA, game.BoardPlayer1View);

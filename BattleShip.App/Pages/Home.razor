@@ -145,9 +145,9 @@ else
         </div>
         @if(!validGrid) {
             <div class="params">
-                <label for="dificulty">Dificulté :</label>
+                <label for="difficulty">Dificulté :</label>
                 <div class="select">
-                    <select id="dificulty" name="dificulty" @bind="@selectedDificulty">
+                    <select id="difficulty" name="difficulty" @bind="@selectedDifficulty">
                         <option value="1">Facile</option>
                         <option value="2">Moyen</option>
                         <option value="3">Difficile</option>
@@ -167,8 +167,8 @@ else
     private BoardDto? boardPlayer2;
     private int size = 10;
     private int selectedSize = 10;
-    private int dificulty = 1;
-    private int selectedDificulty = 1;
+    private int difficulty = 1;
+    private int selectedDifficulty = 1;
     private string winner = "";
     private bool validGrid = false;
     private char? draggedShip = null;
@@ -234,17 +234,16 @@ else
     }
 
     public async Task ValidParams() {
-        var resp = await Http.PostAsJsonAsync<BoardDto>("http://localhost:5015/game/setBoardSize?size="+selectedSize+"&identifier="+Identifier, boardPlayer1);
+        var resp = await Http.PostAsJsonAsync<BoardDto>("http://localhost:5015/game/board/size?size="+selectedSize+"&identifier="+Identifier, boardPlayer1);
         if(resp.IsSuccessStatusCode) {
-            BoardDto? board = await HttpClient.GetFromJsonAsync<BoardDto>("http://localhost:5015/game/getBoard/"+Identifier);
+            BoardDto? board = await HttpClient.GetFromJsonAsync<BoardDto>("http://localhost:5015/game/board/"+Identifier);
             if(board != null) {
                 boardPlayer1 = board;
                 size = board.Grid.Length;
-                resp = await Http.PostAsJsonAsync<int>("http://localhost:5015/game/setDificulty?dificulty="+selectedDificulty+"&identifier="+Identifier, selectedDificulty);
+                resp = await Http.PostAsJsonAsync<int>("http://localhost:5015/game/difficulty?difficulty="+selectedDifficulty+"&identifier="+Identifier, selectedDifficulty);
                 StateHasChanged();
             }
         }
-        Console.WriteLine(resp.IsSuccessStatusCode);
     }
 
     public string gridStyle() {
@@ -394,7 +393,7 @@ else
         if(boardPlayer1 == null) {
             return;
         }
-        await Http.PostAsJsonAsync<BoardDto>("http://localhost:5015/game/setBoard?identifier="+Identifier, boardPlayer1);
+        await Http.PostAsJsonAsync<BoardDto>("http://localhost:5015/game/board?identifier="+Identifier, boardPlayer1);
         validGrid = true;
         StateHasChanged();
     }
@@ -408,8 +407,8 @@ else
         boardPlayer1 = game.VisibleBoard;
         size = game.VisibleBoard.Grid.Length;
         selectedSize = 10;
-        dificulty = 1;
-        selectedDificulty = 1;
+        difficulty = 1;
+        selectedDifficulty = 1;
     }
 
     private async Task Restart() {
@@ -421,8 +420,8 @@ else
         boardPlayer1 = game.VisibleBoard;
         size = game.VisibleBoard.Grid.Length;
         selectedSize = 10;
-        dificulty = 1;
-        selectedDificulty = 1;
+        difficulty = 1;
+        selectedDifficulty = 1;
         boardPlayer2 = null;
         winner = "";
         validGrid = false;

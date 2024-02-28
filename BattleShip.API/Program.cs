@@ -45,7 +45,7 @@ app.MapGet("/game/start", () =>
 .WithName("GameStart")
 .WithOpenApi();
 
-app.MapGet("/game/getBoard/{identifier}", (int identifier) => {
+app.MapGet("/game/board/{identifier}", (int identifier) => {
     Game? game = GameService.GetGame(identifier);
     if(game == null) return Results.NotFound(new { Message = "Game not found" });
     return Results.Ok(new BoardDto
@@ -69,7 +69,7 @@ app.MapGet("/game/attack/{identifier}/{x}/{y}", (int identifier, int x, int y) =
 .WithName("GameAttack")
 .WithOpenApi();
 
-app.MapPost("/game/setBoard", (int identifier, BoardDto board) =>
+app.MapPost("/game/board", (int identifier, BoardDto board) =>
 {
     ValidationResult validationResult = new BoardValidator().Validate(board);
     if (!validationResult.IsValid)
@@ -86,7 +86,7 @@ app.MapPost("/game/setBoard", (int identifier, BoardDto board) =>
             boardParse[i, j] = board.Grid[i][j];
         }
     }
-    game.BoardPlayer1 = new Board
+    game.BoardPlayer1 = new Board(game.BoardPlayer1.size)
     {
         Grid = boardParse
     };
@@ -95,7 +95,7 @@ app.MapPost("/game/setBoard", (int identifier, BoardDto board) =>
 .WithName("GameSetBoard")
 .WithOpenApi();
 
-app.MapPost("/game/setBoardSize", (int identifier, int size) =>
+app.MapPost("/game/board/size", (int identifier, int size) =>
 {
   if(size <= 5) {
     return Results.BadRequest("Size should be greater than 5");
@@ -108,17 +108,17 @@ app.MapPost("/game/setBoardSize", (int identifier, int size) =>
 .WithName("GameSetBoardSize")
 .WithOpenApi();
 
-app.MapPost("/game/setDificulty", (int identifier, int dificulty) =>
+app.MapPost("/game/difficulty", (int identifier, int difficulty) =>
 {
-  if(dificulty < Game.EASY || dificulty > Game.HARD) {
-    return Results.BadRequest("Dificulty should be between 1 and 3");
+  if(difficulty < Game.EASY || difficulty > Game.HARD) {
+    return Results.BadRequest("Difficulty should be between 1 and 3");
   }
   Game? game = GameService.GetGame(identifier);
   if(game == null) return Results.NotFound(new { Message = "Game not found" });
-  game.dificulty = dificulty;
+  game.difficulty = difficulty;
   return Results.Ok();
 })
-.WithName("GameSetDificulty")
+.WithName("GameSetDifficulty")
 .WithOpenApi();
 
 app.MapPost("/game/stop", (int identifier) =>
