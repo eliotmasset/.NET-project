@@ -4,10 +4,47 @@
 @inject NavigationManager Navigation
 @inject SignOutSessionStateManager SignOutManager
 
+@inject HttpClient HttpClient
+@inject HttpClient Http
+@using System.Net.Http.Json
+@using System.Net.Http
+@using BattleShip.Models.DTO
+
+
 <AuthorizeView>
     <Authorized>
-        Hello, @context.User.Identity.Name!
-        <a href="#" @onclick="BeginSignOut">Log out</a>
+        <div class="loginMenu">
+            @context.User.Identity.Name
+            <a href="#" title="se déconnecter" @onclick="BeginSignOut"><i class="fa-solid fa-right-from-bracket"></i></a>
+            <a title="leaderboard" @onclick="OpenModalLeaderBoard"><i class="fa-regular fa-star"></i></a>
+            @if(showModal) {
+                <div class="modal modal-leaderboard" @onclick="HideModal">
+                    <div class="modal-content"  @onclick:stopPropagation="true">
+                        <div class="modal-header">
+                            <h3>Leaderboard</h3>
+                          </div>
+                        <div class="modal-body">
+                            <div id="leaderboard">
+                                <div class="ribbon"></div>
+                                <table>
+                                    @foreach (LeaderBoardDTO score in scores) {
+                                        <tr>
+                                            <td class="number">@score.Id</td>
+                                            <td class="name">@score.Name</td>
+                                            <td class="points">@score.Score
+                                            @if(@score.Id == 1) {
+                                                <img class="gold-medal" src="https://github.com/malunaridev/Challenges-iCodeThis/blob/master/4-leaderboard/assets/gold-medal.png?raw=true" alt="gold medal"/>
+                                            }
+                                            </td>
+                                        </tr>
+                                    }
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
     </Authorized>
     <NotAuthorized>
         <a href="authentication/login">Log in</a>
@@ -15,9 +52,26 @@
 </AuthorizeView>
 
 @code{
+
+    private bool showModal = false;
+    private LeaderBoardDTO[] scores = [];
+
     private async Task BeginSignOut(MouseEventArgs args)
     {
         await SignOutManager.SetSignOutState();
         Navigation.NavigateTo("authentication/logout");
+    }
+
+    private async Task OpenModalLeaderBoard()
+    {
+        scores = await HttpClient.GetFromJsonAsync<LeaderBoardDTO[]>("/leaderboard/");
+        showModal = true;
+        StateHasChanged();
+    }
+
+    private async Task HideModal()
+    {
+        showModal = false;
+        StateHasChanged();
     }
 }

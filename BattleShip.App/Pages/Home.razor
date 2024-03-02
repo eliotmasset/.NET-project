@@ -7,6 +7,8 @@
 @using System.Net.Http
 @using BattleShip.Models.DTO
 
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -25,7 +27,7 @@ else
             <div class="modal" onclick="@(() => ClickOnModal())">
                 <div class="modal-content">
                     <img src="image/pirate.gif" alt="Pirate" />
-                    <h1>Vous avez gagné !</h1>
+                    <h1>Vous avez gagné +@(10*size) points !</h1>
                 </div>
             </div>
         } else if (winner == "Player 2") {
@@ -50,7 +52,9 @@ else
                     <button class="btn btn-valid" onclick="@(() => ValidGrid())">Valider la grille</button>
                 } else {
                     <button class="btn btn-valid btn-valid-restart" onclick="@(() => Restart())">Recommencer</button>
-                    <button class="btn btn-valid btn-valid-cancel" onclick="@(() => CancelMove())">Annuler le coup</button>
+                    @if(winner == "") {
+                        <button class="btn btn-valid btn-valid-cancel" onclick="@(() => CancelMove())">Annuler le coup</button>
+                    }
                 }
 
             </div>
@@ -187,7 +191,7 @@ else
     private bool showModal = false;
 
     private async Task Attack(int x, int y) {
-        StateGameDTO? stateGame = await HttpClient.GetFromJsonAsync<StateGameDTO>("http://localhost:5015/game/attack/"+Identifier+"/"+x+"/"+y);
+        StateGameDTO? stateGame = await HttpClient.GetFromJsonAsync<StateGameDTO>("/game/attack/"+Identifier+"/"+x+"/"+y);
         if(stateGame == null) {
             return;
         }
@@ -237,25 +241,25 @@ else
     }
 
     public async Task ValidParams() {
-        var resp = await Http.PostAsJsonAsync<BoardDto>("http://localhost:5015/game/board/size?size="+selectedSize+"&identifier="+Identifier, boardPlayer1);
+        var resp = await Http.PostAsJsonAsync<BoardDto>("/game/board/size?size="+selectedSize+"&identifier="+Identifier, boardPlayer1);
         if(resp.IsSuccessStatusCode) {
-            BoardDto? board = await HttpClient.GetFromJsonAsync<BoardDto>("http://localhost:5015/game/board/"+Identifier);
+            BoardDto? board = await HttpClient.GetFromJsonAsync<BoardDto>("/game/board/"+Identifier);
             if(board != null) {
                 boardPlayer1 = board;
                 size = board.Grid.Length;
-                resp = await Http.PostAsJsonAsync<int>("http://localhost:5015/game/difficulty?difficulty="+selectedDifficulty+"&identifier="+Identifier, selectedDifficulty);
+                resp = await Http.PostAsJsonAsync<int>("/game/difficulty?difficulty="+selectedDifficulty+"&identifier="+Identifier, selectedDifficulty);
                 StateHasChanged();
             }
         }
     }
 
     public async Task CancelMove() {
-      var resp = await Http.PostAsJsonAsync<int?>("http://localhost:5015/game/cancel?identifier="+Identifier, Identifier);
+      var resp = await Http.PostAsJsonAsync<int?>("/game/cancel?identifier="+Identifier, Identifier);
       if(resp.IsSuccessStatusCode) {
-          BoardDto? board = await HttpClient.GetFromJsonAsync<BoardDto>("http://localhost:5015/game/board/"+Identifier);
+          BoardDto? board = await HttpClient.GetFromJsonAsync<BoardDto>("/game/board/"+Identifier);
           if(board != null) {
               boardPlayer1 = board;
-              BoardDto? board2 = await HttpClient.GetFromJsonAsync<BoardDto>("http://localhost:5015/game/boardView/"+Identifier);
+              BoardDto? board2 = await HttpClient.GetFromJsonAsync<BoardDto>("/game/boardView/"+Identifier);
               if(board2 != null) {
                   boardPlayer2 = board2;
                   StateHasChanged();
@@ -411,13 +415,13 @@ else
         if(boardPlayer1 == null) {
             return;
         }
-        await Http.PostAsJsonAsync<BoardDto>("http://localhost:5015/game/board?identifier="+Identifier, boardPlayer1);
+        await Http.PostAsJsonAsync<BoardDto>("/game/board?identifier="+Identifier, boardPlayer1);
         validGrid = true;
         StateHasChanged();
     }
 
     protected override async Task OnInitializedAsync() {
-        GameDto? game = await Http.GetFromJsonAsync<GameDto>("http://localhost:5015/game/start");
+        GameDto? game = await Http.GetFromJsonAsync<GameDto>("/game/start");
         if(game == null) {
             return;
         }
@@ -430,7 +434,7 @@ else
     }
 
     private async Task Restart() {
-        GameDto? game = await Http.GetFromJsonAsync<GameDto>("http://localhost:5015/game/start");
+        GameDto? game = await Http.GetFromJsonAsync<GameDto>("/game/start");
         if(game == null) {
             return;
         }

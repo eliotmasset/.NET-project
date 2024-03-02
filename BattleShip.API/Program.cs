@@ -5,11 +5,18 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, c =>
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(c =>
     {
         c.Authority = $"https://{builder.Configuration["Auth0:Domain"]}";
         c.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
@@ -17,16 +24,31 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Auth0:Audience"],
             ValidIssuer = $"https://{builder.Configuration["Auth0:Domain"]}"
         };
+        c.TokenValidationParameters.RoleClaimType = "roles";
+        c.TokenValidationParameters.NameClaimType = "https://BattleShipAppIMT.comname";
     });
 
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(
-        builder => builder.WithOrigins("http://localhost:5182").AllowAnyHeader().AllowAnyMethod());
+        builder => builder.WithOrigins("https://localhost:5182").AllowAnyHeader().AllowAnyMethod());
 });
 
+//builder.Services.AddCors();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ApiScope", policy =>
+        policy.RequireAuthenticatedUser()
+    );
+});
+
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddDbContext<LeaderBoardContext>(options =>
+        options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<LeaderBoardService>();
 
 var app = builder.Build();
 app.UseCors();
@@ -38,7 +60,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
-//app.UseAuthorization();
+app.UseAuthorization();
 
 app.MapGet("/game/start", () =>
 {
@@ -58,6 +80,7 @@ app.MapGet("/game/start", () =>
     };
 })
 .WithName("GameStart")
+.RequireAuthorization()
 .WithOpenApi();
 
 app.MapGet("/game/board/{identifier}", (int identifier) => {
@@ -73,6 +96,7 @@ app.MapGet("/game/board/{identifier}", (int identifier) => {
     });
 })
 .WithName("GetBoard")
+.RequireAuthorization()
 .WithOpenApi();
 
 app.MapGet("/game/boardView/{identifier}", (int identifier) => {
@@ -88,15 +112,19 @@ app.MapGet("/game/boardView/{identifier}", (int identifier) => {
     });
 })
 .WithName("GetBoardView")
+.RequireAuthorization()
 .WithOpenApi();
 
-app.MapGet("/game/attack/{identifier}/{x}/{y}", (int identifier, int x, int y) =>
+app.MapGet("/game/attack/{identifier}/{x}/{y}", (HttpContext httpContext, IServiceProvider serviceProvider, int identifier, int x, int y) =>
 {
+    var leaderBoardService = serviceProvider.GetRequiredService<LeaderBoardService>();
     Game? game = GameService.GetGame(identifier);
     if(game == null) return Results.NotFound(new { Message = "Game not found" });
-    return Results.Ok(GameService.Play(game, x, y));
+    var name = httpContext.User.Claims.FirstOrDefault(c => c.Type == "https://BattleShipAppIMT.comname")?.Value;
+    return Results.Ok(GameService.Play(leaderBoardService, game, x, y, name));
 })
 .WithName("GameAttack")
+.RequireAuthorization()
 .WithOpenApi();
 
 app.MapPost("/game/board", (int identifier, BoardDto board) =>
@@ -123,6 +151,7 @@ app.MapPost("/game/board", (int identifier, BoardDto board) =>
     return Results.Ok();
 })
 .WithName("GameSetBoard")
+.RequireAuthorization()
 .WithOpenApi();
 
 app.MapPost("/game/board/size", (int identifier, int size) =>
@@ -136,6 +165,7 @@ app.MapPost("/game/board/size", (int identifier, int size) =>
   return Results.Ok();
 })
 .WithName("GameSetBoardSize")
+.RequireAuthorization()
 .WithOpenApi();
 
 app.MapPost("/game/difficulty", (int identifier, int difficulty) =>
@@ -149,6 +179,7 @@ app.MapPost("/game/difficulty", (int identifier, int difficulty) =>
   return Results.Ok();
 })
 .WithName("GameSetDifficulty")
+.RequireAuthorization()
 .WithOpenApi();
 
 app.MapPost("/game/cancel", (int identifier) =>
@@ -159,6 +190,7 @@ app.MapPost("/game/cancel", (int identifier) =>
     return Results.Ok();
 })
 .WithName("GameCancel")
+.RequireAuthorization()
 .WithOpenApi();
 
 app.MapPost("/game/stop", (int identifier) =>
@@ -176,6 +208,15 @@ app.MapPost("/game/stop", (int identifier) =>
     return Results.Ok();
 })
 .WithName("GameStop")
+.RequireAuthorization()
+.WithOpenApi();
+
+app.MapGet("/leaderboard", (HttpContext httpContext, IServiceProvider serviceProvider) => {
+    var leaderBoardService = serviceProvider.GetRequiredService<LeaderBoardService>();
+    return Results.Ok(leaderBoardService.GetAll());
+})
+.WithName("GetLeaderboard")
+.RequireAuthorization()
 .WithOpenApi();
 
 app.Run();

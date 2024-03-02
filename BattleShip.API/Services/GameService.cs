@@ -22,8 +22,11 @@ public class GameService
         return games.First(g => g.Identifier == identifier);
     }
 
-    public static StateGameDTO Play(Game game, int x, int y) {
+    public static StateGameDTO Play(LeaderBoardService leaderBoardService, Game game, int x, int y, string username) {
         if(BoardService.IsGameOver(game.BoardPlayer1) || BoardService.IsGameOver(game.BoardPlayer2)) {
+            if(BoardService.IsGameOver(game.BoardPlayer2)) {
+                leaderBoardService.AddScore(username, 10*game.BoardPlayer1View.size);
+            }
             return new StateGameDTO {
                 GameWinner = BoardService.IsGameOver(game.BoardPlayer1) ? game.Player2Name : game.Player1Name,
                 StateAttack = "",
@@ -62,6 +65,9 @@ public class GameService
             gameOver = BoardService.IsGameOver(game.BoardPlayer1);
             iaWin = gameOver;
         };
+        if(gameOver && !iaWin) {
+            leaderBoardService.AddScore(username, 10*game.BoardPlayer1View.size);
+        }
         return new StateGameDTO {
             GameWinner = gameOver ? iaWin ? game.Player2Name : game.Player1Name : "",
             StateAttack = shooted ? "Hit" : "Miss",
