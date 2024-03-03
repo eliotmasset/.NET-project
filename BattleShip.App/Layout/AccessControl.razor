@@ -27,16 +27,18 @@
                             <div id="leaderboard">
                                 <div class="ribbon"></div>
                                 <table>
+                                    @{ int i = 1; }
                                     @foreach (LeaderBoardDTO score in scores) {
                                         <tr>
-                                            <td class="number">@score.Id</td>
+                                            <td class="number">@i</td>
                                             <td class="name">@score.Name</td>
                                             <td class="points">@score.Score
-                                            @if(@score.Id == 1) {
+                                            @if(@i == 1) {
                                                 <img class="gold-medal" src="https://github.com/malunaridev/Challenges-iCodeThis/blob/master/4-leaderboard/assets/gold-medal.png?raw=true" alt="gold medal"/>
                                             }
                                             </td>
                                         </tr>
+                                        i = i + 1;
                                     }
                                 </table>
                             </div>

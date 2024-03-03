@@ -15,7 +15,7 @@ public class LeaderBoardService
 
     public List<LeaderBoardDTO> GetAll()
     {
-        return _context.LeaderBoards.OrderBy(lb => lb.Score).ToList();
+        return _context.LeaderBoards.OrderByDescending(lb => lb.Score).ToList();
     }
 
     public bool AddScore(string name, int score)
