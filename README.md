@@ -4,6 +4,19 @@
  - Masset Eliot
  - Lasserre Julie
 
+## Lancement du projet :
+
+```
+cd BattelShip.API/
+dotnet ef migration update
+dotnet watch
+```
+
+```
+cd BattelShip.App/
+dotnet watch
+```
+
 ## Liste des fonctionnalités :
 
  - Jouer contre une IA
