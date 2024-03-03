@@ -16,7 +16,7 @@
  - Gestion des utilisateurs (Inscription, login, logout avec Auth0)
  - Leaderbord
 
-##Fonctionnement de notre application
+## Fonctionnement de notre application
 Au lancement de notre application, une page de login invite l'utilisateur à s'identifier. Si celui-ci ne possède pas de compte, il pourra alors en créé un.
 Une fois cela fait, l'utilisateur a accès à notre bataille navale.
 Avant de commencer à jouer, l'utilisateur peut choisir le niveau de difficulté de l'IA parmis 3 niveaux : facile, moyen, difficile. Pour augmenter encore le niveau de difficulté, l'utilisateur peut aussi choisir la taille de la grille qui peut aller de 6x6 à 20x20. Quelque soit la taille de la grille, le nombre de bâteau ne change pas.
